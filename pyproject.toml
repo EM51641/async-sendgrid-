@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Utilities"
@@ -35,7 +36,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 sendgrid = "^6.7.0"
 httpx = "^0.24.1"
 
@@ -49,6 +50,9 @@ mypy = "^1.0.0"
 flake8 = "^6.0.0"
 black = "^23.9.0"
 tox = "^4.11.1"
+
+[tool.black]
+line-length = 79
 
 
 [tool.coverage.report]
