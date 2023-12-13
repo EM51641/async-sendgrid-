@@ -17,11 +17,11 @@ on:
 
 jobs:
     unit:
-      name: Call Unit Tests
+      name: Call unit tests
       uses: ./.github/workflows/unit.yaml
 
     typing:
-      name: Call Mypy
+      name: Call mypy
       uses: ./.github/workflows/typing.yaml
 
     linting:
@@ -33,7 +33,7 @@ jobs:
       uses: ./.github/workflows/formatter.yaml
 
     integration:
-      name: Call Integration Tests
+      name: Call integration tests
       uses: ./.github/workflows/integration.yaml
 
     release:

@@ -28,4 +28,4 @@ jobs:
         run: pip install black
 
       - name: Execute mypy
-        run: python -m black = async_sendgrid
+        run: python -m black --check async_sendgrid
