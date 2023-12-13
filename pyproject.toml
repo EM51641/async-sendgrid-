@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "async-sendgrid"
-version = "1.0.0"
+version = "0.0.4"
 description = "SendGrid simple async client based on httpx."
 license = "MIT"
 authors = ["Saltymakov Timofey <saltytimofey@gmail.com>"]

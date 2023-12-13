@@ -1,29 +1,31 @@
 name: Linting
 
-on: 
+on:
   push:
     branches:
-      - master
+      - main
       - dev
 
   pull_request:
     branches:
-      - master
+      - main
       - dev
-  workflow_call:
-
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - uses: actions/checkout@v3
 
-      - name: Set up Python & Poetry
-        uses: sensodevices/async-sendgrid/.github/actions/build_async_sendgrid@master
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          poetry-version: "1.6.1"
-          python-version: "3.11.5"
+          python-version: '3.11'
+
+      - name: Install flake8
+        run: pip install flake8
 
       - name: Execute flake8
-        run: poetry run flake8 async-sendgrid
+        run: python -m flake8 async_sendgrid
