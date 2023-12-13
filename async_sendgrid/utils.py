@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from httpx import AsyncClient  # type: ignore
 
 if TYPE_CHECKING:

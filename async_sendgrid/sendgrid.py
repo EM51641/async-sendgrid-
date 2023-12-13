@@ -1,13 +1,16 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
-from async_sendgrid.utils import create_session
+
 import async_sendgrid
+from async_sendgrid.utils import create_session
 
 if TYPE_CHECKING:
     from typing import Any, Optional
-    from sendgrid.helpers.mail import Mail  # type: ignore
+
     from httpx import Response  # type: ignore
+    from sendgrid.helpers.mail import Mail  # type: ignore
 
 
 class BaseSendgridAPI(ABC):

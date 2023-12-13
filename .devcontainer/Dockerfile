@@ -1,9 +1,8 @@
-FROM mcr.microsoft.com/devcontainers/python:0-3.11
+FROM mcr.microsoft.com/devcontainers/python:0-3.12
 
 ENV PYTHONUNBUFFERED 1
 
 COPY pyproject.toml ./
-
 
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=0 \
