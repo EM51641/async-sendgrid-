@@ -13,7 +13,9 @@
 				"GitHub.copilot",
 				"ms-python.black-formatter",
 				"ms-python.mypy-type-checker",
-				"ms-vscode.live-server"
+				"ms-vscode.live-server",
+				"ms-python.flake8",
+				"ms-python.isort"
 			]
 		}
 	}
