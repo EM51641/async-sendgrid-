@@ -19,7 +19,7 @@ jobs:
     steps:
 
       - name: Setup the environment
-        uses: EM51641/async-sendgrid/.github/actions/build_app@dev
+        uses: EM51641/async-sendgrid/.github/actions/build_app@main
 
       - name: Check the format
         run: poetry run python -m black --check async_sendgrid

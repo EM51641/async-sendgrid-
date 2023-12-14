@@ -26,7 +26,7 @@ jobs:
     steps:
 
       - name: Setup the environment
-        uses: EM51641/async-sendgrid/.github/actions/build_app@dev
+        uses: EM51641/async-sendgrid/.github/actions/build_app@main
         with:
           python-version: ${{ matrix.python-version }}
 
