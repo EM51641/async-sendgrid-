@@ -1,0 +1,46 @@
+name: Build
+
+inputs:
+    poetry-version:
+      required: false
+      type: string
+      default: '1.6.1'
+
+    poetry-virtualenv:
+      required: false
+      type: boolean
+      default: false
+    
+    poetry-virtualenvs-in-project:
+      required: false
+      type: boolean
+      default: false
+
+    python-version:
+      required: false
+      type: string
+      default: '3.12'
+
+runs:
+  using: "composite"
+
+  steps:
+
+    # Downloads a copy of the code in your repository before running CI tests
+    - uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: ${{ inputs.poetry-version }}
+        virtualenvs-create: ${{ inputs.poetry-virtualenv }}
+        virtualenvs-in-project: ${{ inputs.poetry-virtualenvs-in-project }}
+
+    - name: Install project
+      run: poetry install --no-root --no-interaction
+      shell: bash

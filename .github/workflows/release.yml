@@ -18,33 +18,36 @@ on:
 jobs:
     unit:
       name: Call unit tests
-      uses: ./.github/workflows/unit.yaml
+      uses: EM51641/async-sendgrid/.github/workflows/unit.yaml@main
 
     typing:
       name: Call mypy
-      uses: ./.github/workflows/typing.yaml
+      uses: EM51641/async-sendgrid/.github/workflows/typing.yaml@main
 
     linting:
       name: Call flake8
-      uses: ./.github/workflows/linting.yaml
+      uses: EM51641/async-sendgrid/.github/workflows/linting.yaml@main
 
     formatter:
       name: Call black
-      uses: ./.github/workflows/formatter.yaml
+      uses: EM51641/async-sendgrid/.github/workflows/formatter.yaml@main
 
     integration:
       name: Call integration tests
-      uses: ./.github/workflows/integration.yaml
+      uses: EM51641/async-sendgrid/.github/workflows/integration.yaml@main
 
     release:
       runs-on: ubuntu-latest
       name: Release version
       needs: [unit, typing, linting, formatter, integration]
+
+      permissions:
+        contents: write
+
       steps:
-        - name: Check out repository
-          uses: actions/checkout@v3
-        - name: Use local my-action
-          uses: ./.github/action/release.yaml
+        - uses: ncipollo/release-action@v1
+          with:
+            artifacts: "release.tar.gz,foo/*.txt"
 
     deploy:
       needs: [release]
@@ -54,27 +57,17 @@ jobs:
         contents: read
 
       steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.11.5'
+        - name: Setup the environment
+          uses: EM51641/async-sendgrid/.github/actions/build_app@dev
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: '1.6.1'
-          virtualenvs-create: false
-          virtualenvs-in-project: false
+        - name: Install Dependencies
+          run: poetry install --no-root
 
-      - name: Install Dependencies
-        run: poetry install --no-root
+        - name: Build package
+          run: poetry build
 
-      - name: Build package
-        run: poetry build
-
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+        - name: Publish package
+          uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+          with:
+            user: __token__
+            password: ${{ secrets.PYPI_API_TOKEN }}

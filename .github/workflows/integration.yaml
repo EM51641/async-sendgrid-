@@ -24,11 +24,11 @@ jobs:
       PIP_DEFAULT_TIMEOUT: 100  
 
     steps:
-      - name: Set up Python & Poetry
-        uses: sensodevices/async-sendgrid/.github/actions/build_async_sendgrid@master
+
+      - name: Setup the environment
+        uses: EM51641/async-sendgrid/.github/actions/build_app@dev
         with:
-          poetry-version: '1.6.1'
           python-version: ${{ matrix.python-version }}
 
-      - name: Execute Pytest
+      - name: Run tests
         run: poetry run python -m pytest --cov=async-sendgrid tests

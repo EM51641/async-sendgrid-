@@ -21,24 +21,10 @@ jobs:
       PIP_DEFAULT_TIMEOUT: 100  
 
     steps:
-      # Downloads a copy of the code in your repository before running CI tests
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12.0'
+      - name: Setup the environment
+        uses: EM51641/async-sendgrid/.github/actions/build_app@dev
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: '1.6.1'
-          virtualenvs-create: false
-          virtualenvs-in-project: false
-
-      - name: Install project
-        run: poetry install --no-root
-
-      - name: Execute Pytest
+      - name: Run tests
         run: poetry run python -m pytest --cov=async_sendgrid tests
 
       - name: Upload coverage reports to Codecov

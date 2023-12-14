@@ -42,7 +42,7 @@ class BaseSendgridAPI(ABC):
 class SendgridAPI(BaseSendgridAPI):
     """
     Construct the Twilio SendGrid v3 API object.
-    Note that the underlying client is being set up during initialization,
+    Note that the underlying client is being Setup during initialization,
     therefore changing attributes in runtime will not affect HTTP client
     behaviour.
 

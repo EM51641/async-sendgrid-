@@ -17,15 +17,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Downloads a copy of the code in your repository before running CI tests
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
 
-      - name: Install black
-        run: pip install black
+      - name: Setup the environment
+        uses: EM51641/async-sendgrid/.github/actions/build_app@dev
 
-      - name: Execute mypy
-        run: python -m black --check async_sendgrid
+      - name: Check the format
+        run: poetry run python -m black --check async_sendgrid
