@@ -1,8 +1,8 @@
 | | |
 | --- | --- |
-| Python| ![Python](https://img.shields.io/pypi/pyversions/async-sendgrid) |
-| Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/pandas.svg)](https://pypi.org/project/async-sendgrid/) [![PyPI Downloads](https://img.shields.io/pypi/dm/async-sendgrid.svg?label=PyPI%20downloads)](https://pypi.org/project/async-sendgrid/) |
-| Meta | [![License - MIT](https://img.shields.io/pypi/l/async_sendgrid.svg)](https://github.com/sensodevices/async_sendgrid/blob/main/LICENSE)|
+| Python| ![Python](https://img.shields.io/pypi/pyversions/sendgrid-async) |
+| Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/pandas.svg)](https://pypi.org/project/sendgrid-async/) [![PyPI Downloads](https://img.shields.io/pypi/dm/sendgrid-async.svg?label=PyPI%20downloads)](https://pypi.org/project/sendgrid-async/) |
+| Meta | [![License - MIT](https://img.shields.io/pypi/l/async_sendgrid.svg)](https://github.com/EM51641/async-sendgrid/blob/main/LICENSE)|
 
 # Async-Sendgrid
 
@@ -10,10 +10,10 @@ Sendgrid simple asynchronous client based on the httpx libarary.
 
 # Installation
 
-It is possible to install async-sendgrid with pip:
+It is possible to install sendgrid-async with pip:
 
-```bash
-pip install async-sendgrid
+```shell
+pip install sendgrid-async
 ```
 
 # Usage
