@@ -12,8 +12,9 @@ on:
   push:
     branches:
       - main
-    tags:
-      - '*'
+  pull_request:
+      branches:
+        - main
 
 jobs:
     unit:
@@ -45,9 +46,15 @@ jobs:
         contents: write
 
       steps:
-        - uses: ncipollo/release-action@v1
+        - uses: "marvinpinto/action-automatic-releases@latest"
           with:
-            artifacts: "release.tar.gz,foo/*.txt"
+            repo_token: "${{ secrets.GITHUB_TOKEN }}"
+            automatic_release_tag: "latest"
+            prerelease: true
+            title: "Production Build"
+            files: |
+              LICENSE.txt
+              *.jar
 
     deploy:
       needs: [release]
