@@ -1,9 +1,10 @@
-from enum import auto
-import pytest
 from unittest.mock import Mock, patch
-from async_sendgrid.sendgrid import SendgridAPI
+
+import pytest
 from pytest_httpx import HTTPXMock
 from sendgrid.helpers.mail import Mail
+
+from async_sendgrid.sendgrid import SendgridAPI
 
 
 class TestAsyncClient:

@@ -1,5 +1,7 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
+
 from httpx import AsyncClient
+
 from async_sendgrid.utils import create_session
 
 
