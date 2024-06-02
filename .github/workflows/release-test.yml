@@ -9,73 +9,70 @@
 name: Release and Upload Python Package on Test PyPI
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
-      branches:
-        - dev
+    branches:
+      - main
 
 jobs:
-    unit:
-      name: Call unit tests
-      uses: EM51641/async-sendgrid/.github/workflows/unit.yaml@main
+  unit:
+    name: Call unit tests
+    uses: EM51641/async-sendgrid/.github/workflows/unit.yaml@main
 
-    typing:
-      name: Call mypy
-      uses: EM51641/async-sendgrid/.github/workflows/typing.yaml@main
+  typing:
+    name: Call mypy
+    uses: EM51641/async-sendgrid/.github/workflows/typing.yaml@main
 
-    linting:
-      name: Call flake8
-      uses: EM51641/async-sendgrid/.github/workflows/linting.yaml@main
+  linting:
+    name: Call flake8
+    uses: EM51641/async-sendgrid/.github/workflows/linting.yaml@main
 
-    formatter:
-      name: Call black
-      uses: EM51641/async-sendgrid/.github/workflows/formatter.yaml@main
+  formatter:
+    name: Call black
+    uses: EM51641/async-sendgrid/.github/workflows/formatter.yaml@main
 
-    integration:
-      name: Call integration tests
-      uses: EM51641/async-sendgrid/.github/workflows/integration.yaml@main
+  integration:
+    name: Call integration tests
+    uses: EM51641/async-sendgrid/.github/workflows/integration.yaml@main
 
-    release:
-      runs-on: ubuntu-latest
-      name: Release version
-      needs: [unit, typing, linting, formatter, integration]
+  release:
+    runs-on: ubuntu-latest
+    name: Release version
+    needs: [unit, typing, linting, formatter, integration]
 
-      permissions:
-        contents: write
+    permissions:
+      contents: write
 
-      steps:
-        - uses: "marvinpinto/action-automatic-releases@latest"
-          with:
-            repo_token: "${{ secrets.GITHUB_TOKEN }}"
-            automatic_release_tag: "latest"
-            prerelease: true
-            title: "Development Build"
-            files: |
-              LICENSE.txt
-              *.jar
+    steps:
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            LICENSE.txt
+            *.jar
 
-    deploy:
-      needs: [release]
-      runs-on: ubuntu-latest
+  deploy:
+    needs: [release]
+    runs-on: ubuntu-latest
 
-      permissions:
-        contents: read
+    permissions:
+      contents: read
 
-      steps:
-        - name: Setup the environment
-          uses: EM51641/async-sendgrid/.github/actions/build_app@main
+    steps:
+      - name: Setup the environment
+        uses: EM51641/async-sendgrid/.github/actions/build_app@main
 
-        - name: Install Dependencies
-          run: poetry install --no-root
+      - name: Install Dependencies
+        run: poetry install --no-root
 
-        - name: Build package
-          run: poetry build
+      - name: Build package
+        run: poetry build
 
-        - name: Publish package
-          uses: pypa/gh-action-pypi-publish@release/v1
-          with:
-            repository-url: https://test.pypi.org/legacy/
-            user: __token__
-            password: ${{ secrets.PYPI_TEST_API_TOKEN}}
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          user: __token__
+          password: ${{ secrets.PYPI_TEST_API_TOKEN}}
