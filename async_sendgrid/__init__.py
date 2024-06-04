@@ -1,9 +1,4 @@
-import toml  # type: ignore
-
 from .sendgrid import SendgridAPI  # noqa
 
-pyproject = toml.load("pyproject.toml")  # Extract the version
-version = pyproject["tool"]["poetry"]["version"]
-
-__version__ = version
+__version__ = "2.0.1"
 __all__ = ["SendgridAPI"]

@@ -6,30 +6,31 @@
 
 # Async-Sendgrid
 
-Sendgrid simple asynchronous client based on the httpx libarary.
+Sendgrid-Async is a simple asynchronous client built upon the httpx library.
 
 # Installation
 
-It is possible to install sendgrid-async with pip:
+You can install Sendgrid-Async using pip with the following command:
 
 ```shell
 pip install sendgrid-async
 ```
 
 # Usage
-This is a small script showing how to send an email with async-sendgrid:
 
-First, you need to import the ```SendgridAPI``` from the ```async_sendgrid``` package. Then, you need to create a ```SendgridAPI``` object with your API key.
+Here is a brief script demonstrating how to send an email using Async-Sendgrid:
+
+First, import the `SendgridAPI` from the `sendgrid-async` package. Then, create a SendgridAPI object using your API key.
 
 ```python
 from async_sendgrid import SendgridAPI
 import os
 
-API_KEY = os.environ.get('API_KEY')
+API_KEY = os.environ.get('SECRET_API_KEY')
 sendgrid = SendgridAPI(API_KEY)
 ```
 
-Thereafter, you can create an email with the original ```sendgrid``` package such:
+Next, we can create an email using the original `sendgrid` library as follows:
 
 ```python
 from sendgrid.helpers.mail import Content, Email, Mail, To
@@ -45,12 +46,17 @@ mail = Mail(
     subject=subject,
     content=content
     )
-
 ```
 
-Finally you can send the email with the ```send``` method of the ```SendgridAPI``` instance:
+An email can be sent to sendgrid servers with the  `send` API of the `SendgridAPI` instance:
 
 ```python
 async with sendgrid as client:
     response = await client.send(data)
+```
+
+For testing purposes, you can modify the API endpoint as follows:
+
+```python
+sendgrid = SendgridAPI(api_key="SECRET_API_KEY", endpoint="https://localhost:3000/v3/mail/send")
 ```
