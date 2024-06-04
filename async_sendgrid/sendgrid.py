@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from httpx import AsyncClient  # type: ignore
 
-import async_sendgrid
 from async_sendgrid.utils import create_session
 
 if TYPE_CHECKING:
@@ -24,11 +23,6 @@ class BaseSendgridAPI(ABC):
     @property
     @abstractmethod
     def endpoint(self) -> str:
-        """Not implemented"""
-
-    @property
-    @abstractmethod
-    def version(self) -> str:
         """Not implemented"""
 
     @property
@@ -65,11 +59,10 @@ class SendgridAPI(BaseSendgridAPI):
     ):
         self._api_key = api_key
         self._endpoint = endpoint
-        self._version = async_sendgrid.__version__
 
         self._headers = {
             "Authorization": f"Bearer {self._api_key}",
-            "User-Agent": f"async_sendgrid/{self._version};python",
+            "User-Agent": "async_sendgrid;python",
             "Accept": "*/*",
             "Content-Type": "application/json",
         }
@@ -86,10 +79,6 @@ class SendgridAPI(BaseSendgridAPI):
     @property
     def endpoint(self) -> str:
         return self._endpoint
-
-    @property
-    def version(self) -> str:
-        return self._version
 
     @property
     def headers(self) -> dict[Any, Any]:

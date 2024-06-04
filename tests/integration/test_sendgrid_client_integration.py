@@ -78,16 +78,11 @@ class TestSendgridClient:
         assert len(messages) == 1
         msg = messages[0]
 
-        assert msg["from"]["email"] == "johndoe@example.com"
+        assert msg["from"] == {"email": "johndoe@example.com"}
         assert msg["subject"] == "Example email"
-
-        assert len(msg["personalizations"]) == 1
-        assert len(msg["personalizations"][0]["to"]) == 1
-        assert (
-            msg["personalizations"][0]["to"][0]["email"]
-            == "mahndoe@example.com"
-        )
-
-        assert len(msg["content"]) == 1
-        assert msg["content"][0]["value"] == "Hello World!"
-        assert msg["content"][0]["type"] == "text/plain"
+        assert msg["personalizations"] == [
+            {"to": [{"email": "mahndoe@example.com"}]}
+        ]
+        assert msg["content"] == [
+            {"type": "text/plain", "value": "Hello World!"}
+        ]

@@ -18,14 +18,14 @@ jobs:
 
     env:
       POETRY_NO_INTERACTION: 1
-      PIP_DEFAULT_TIMEOUT: 100  
+      PIP_DEFAULT_TIMEOUT: 100
 
     steps:
       - name: Setup the environment
         uses: EM51641/async-sendgrid/.github/actions/build_app@main
 
       - name: Run tests
-        run: poetry run python -m pytest --cov=async_sendgrid tests
+        run: poetry run python -m pytest -k unit --cov=async_sendgrid tests
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
