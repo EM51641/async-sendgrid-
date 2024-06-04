@@ -4,20 +4,17 @@ on:
   push:
     branches:
       - main
-      - dev
   pull_request:
     branches:
-      - main
       - dev
 
   workflow_call:
-      
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Setup the environment
         uses: EM51641/async-sendgrid/.github/actions/build_app@main
 

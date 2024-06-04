@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 
 from async_sendgrid.sendgrid import SendgridAPI
@@ -24,7 +22,7 @@ class TestAsyncClient:
         assert self._service.api_key == "SECRET_KEY"
         assert self._service.headers == {
             "Authorization": "Bearer SECRET_KEY",
-            "User-Agent": "async_sendgrid;python",
+            "User-Agent": "sendgrid-async;python",
             "Accept": "*/*",
             "Content-Type": "application/json",
             "On-Behalf-Of": "John Smith",

@@ -9,7 +9,7 @@
 name: Release and Upload Python Package on PyPI
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
