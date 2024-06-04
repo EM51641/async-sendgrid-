@@ -3,11 +3,11 @@ name: Integration Tests
 on:
   push:
     branches:
-      - master
+      - main
       - dev
   pull_request:
     branches:
-      - master
+      - main
       - dev
 
   workflow_call:
@@ -15,20 +15,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      sendgrid:
+        image: ghashange/sendgrid-mock:1.9.0
+        env:
+          API_KEY: SG.test123
+        ports:
+          - 3000:3000
+
     strategy:
       matrix:
-        python-version: ['3.10.13', '3.11.5', '3.12.0']
+        python-version: ["3.10.13", "3.11.5", "3.12.0"]
 
     env:
       POETRY_NO_INTERACTION: 1
-      PIP_DEFAULT_TIMEOUT: 100  
+      PIP_DEFAULT_TIMEOUT: 100
 
     steps:
-
       - name: Setup the environment
         uses: EM51641/async-sendgrid/.github/actions/build_app@main
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Run tests
-        run: poetry run python -m pytest --cov=async-sendgrid tests
+        run: poetry run python -m pytest -k integration --cov=async-sendgrid tests

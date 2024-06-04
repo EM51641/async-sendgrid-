@@ -3,7 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-import async_sendgrid
+from httpx import AsyncClient  # type: ignore
+
 from async_sendgrid.utils import create_session
 
 if TYPE_CHECKING:
@@ -26,16 +27,11 @@ class BaseSendgridAPI(ABC):
 
     @property
     @abstractmethod
-    def version(self) -> str:
-        """Not implemented"""
-
-    @property
-    @abstractmethod
     def headers(self) -> dict[Any, Any]:
         """Not implemented"""
 
     @abstractmethod
-    async def send(self, message: dict[Any, Any] | Mail) -> Response:
+    async def send(self, message: Mail) -> Response:
         """Not implemented"""
 
 
@@ -47,6 +43,8 @@ class SendgridAPI(BaseSendgridAPI):
     behaviour.
 
     :param api_key: The api key issued by Sendgrid.
+    :param endpoint: The endpoint to send the request to. Defaults to
+        "https://api.sendgrid.com/v3/mail/send".
     :param impersonate_subuser: the subuser to impersonate. Will be passed
         by "On-Behalf-Of" header by underlying client.
         See https://sendgrid.com/docs/User_Guide/Settings/subusers.html
@@ -56,15 +54,15 @@ class SendgridAPI(BaseSendgridAPI):
     def __init__(
         self,
         api_key: str,
+        endpoint: str = "https://api.sendgrid.com/v3/mail/send",
         impersonate_subuser: Optional[str] = None,
     ):
         self._api_key = api_key
-        self._endpoint = "https://api.sendgrid.com/v3/mail/send"
-        self._version = async_sendgrid.__version__
+        self._endpoint = endpoint
 
         self._headers = {
             "Authorization": f"Bearer {self._api_key}",
-            "User-Agent": f"async_sendgrid/{self._version};python",
+            "User-Agent": "async_sendgrid;python",
             "Accept": "*/*",
             "Content-Type": "application/json",
         }
@@ -72,7 +70,7 @@ class SendgridAPI(BaseSendgridAPI):
         if impersonate_subuser:
             self._headers["On-Behalf-Of"] = impersonate_subuser
 
-        self._session = create_session(self._headers)
+        self._session: AsyncClient | None = None
 
     @property
     def api_key(self) -> str:
@@ -81,10 +79,6 @@ class SendgridAPI(BaseSendgridAPI):
     @property
     def endpoint(self) -> str:
         return self._endpoint
-
-    @property
-    def version(self) -> str:
-        return self._version
 
     @property
     def headers(self) -> dict[Any, Any]:
@@ -103,6 +97,8 @@ class SendgridAPI(BaseSendgridAPI):
         ----
             :return: The Twilio SendGrid v3 API response
         """
+        assert self._session
+
         json_message = message.get()
         response = await self._session.post(
             url=self._endpoint, json=json_message
@@ -110,9 +106,11 @@ class SendgridAPI(BaseSendgridAPI):
         return response
 
     async def __aenter__(self):
-        if self._session.is_closed:
+        if not self._session or self._session.is_closed:
             self._session = create_session(headers=self._headers)
         return self
 
     async def __aexit__(self, exc_type: Any, exc: Any, tb: Any):
+        assert self._session
+
         await self._session.aclose()

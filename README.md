@@ -25,7 +25,7 @@ First, you need to import the ```SendgridAPI``` from the ```async_sendgrid``` pa
 from async_sendgrid import SendgridAPI
 import os
 
-API_KEY = os.environ.get['API_KEY']
+API_KEY = os.environ.get('API_KEY')
 sendgrid = SendgridAPI(API_KEY)
 ```
 
