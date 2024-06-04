@@ -62,7 +62,7 @@ class SendgridAPI(BaseSendgridAPI):
 
         self._headers = {
             "Authorization": f"Bearer {self._api_key}",
-            "User-Agent": "async_sendgrid;python",
+            "User-Agent": "sendgrid-async;python",
             "Accept": "*/*",
             "Content-Type": "application/json",
         }
