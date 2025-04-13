@@ -25,7 +25,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.10.13", "3.11.5", "3.12.0"]
+        python-version: ["3.10.13", "3.11.5", "3.12.0", "3.13.2"]
 
     env:
       POETRY_NO_INTERACTION: 1
