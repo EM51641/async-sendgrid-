@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Setup the environment
-        uses: EM51641/async-sendgrid/.github/actions/build_app@main
+        uses: ./.github/actions/build_app
 
       - name: Check the linting
         run: poetry run python -m flake8 async_sendgrid

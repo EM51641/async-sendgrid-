@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Setup the environment
-        uses: EM51641/async-sendgrid/.github/actions/build_app@main
+        uses: ./.github/actions/build_app
 
       - name: Check the typing
         run: poetry run python -m mypy async_sendgrid

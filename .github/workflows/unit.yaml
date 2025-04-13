@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Setup the environment
-        uses: EM51641/async-sendgrid/.github/actions/build_app@main
+        uses: ./.github/actions/build_app
 
       - name: Run tests
         run: poetry run python -m pytest -k unit --cov=async_sendgrid tests
