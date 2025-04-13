@@ -1,14 +1,8 @@
 name: Linting
 
 on:
-  push:
-    branches:
-      - main
-
   pull_request:
     types: [opened, synchronize]
-    branches:
-      - dev
 
   workflow_call:
 
