@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Setup the environment
-        uses: ./.github/actions/build_app
+        uses: ./.github/actions/build_app/action.yml
 
       - name: Check the linting
         run: poetry run python -m flake8 async_sendgrid

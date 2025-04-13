@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Setup the environment
-        uses: ./.github/actions/build_app
+        uses: ./.github/actions/build_app/action.yml
 
       - name: Check the typing
         run: poetry run python -m mypy async_sendgrid
