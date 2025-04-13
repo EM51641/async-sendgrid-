@@ -27,7 +27,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
@@ -45,6 +45,8 @@ jobs:
       contents: read
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Setup the environment
         uses: ./.github/actions/build_app
 
