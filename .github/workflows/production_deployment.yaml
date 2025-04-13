@@ -14,30 +14,14 @@ on:
       - main
 
 jobs:
-  unit:
-    name: Call unit tests
-    uses: ./.github/workflows/unit.yaml
-
-  typing:
-    name: Call mypy
-    uses: ./.github/workflows/typing.yaml
-
-  linting:
-    name: Call flake8
-    uses: ./.github/workflows/linting.yaml
-
-  formatter:
-    name: Call black
-    uses: ./.github/workflows/formatter.yaml
-
-  integration:
-    name: Call integration tests
-    uses: ./.github/workflows/integration.yaml
+  ci:
+    name: Call CI
+    uses: ./.github/workflows/ci.yaml
 
   release:
     runs-on: ubuntu-latest
     name: Release version
-    needs: [unit, typing, linting, formatter, integration]
+    needs: [ci]
 
     permissions:
       contents: write
@@ -63,9 +47,6 @@ jobs:
     steps:
       - name: Setup the environment
         uses: ./.github/actions/build_app
-
-      - name: Install Dependencies
-        run: poetry install --no-root
 
       - name: Build package
         run: poetry build
