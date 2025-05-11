@@ -1,62 +1,108 @@
-| | |
-| --- | --- |
-| Python| ![Python](https://img.shields.io/pypi/pyversions/sendgrid-async) |
-| Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/sendgrid-async.svg)](https://pypi.org/project/sendgrid-async/) [![PyPI Downloads](https://img.shields.io/pypi/dm/sendgrid-async.svg?label=PyPI%20downloads)](https://pypi.org/project/sendgrid-async/) |
-| Meta | [![License - MIT](https://img.shields.io/pypi/l/async_sendgrid.svg)](https://github.com/sensodevices/async_sendgrid/blob/main/LICENSE)|
-
 # Async-Sendgrid
 
-Sendgrid-Async is a simple asynchronous client built upon the httpx library.
+[![Python](https://img.shields.io/pypi/pyversions/sendgrid-async)](https://pypi.org/project/sendgrid-async/)
+[![PyPI Latest Release](https://img.shields.io/pypi/v/sendgrid-async.svg)](https://pypi.org/project/sendgrid-async/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/sendgrid-async.svg?label=PyPI%20downloads)](https://pypi.org/project/sendgrid-async/)
+[![License - MIT](https://img.shields.io/pypi/l/async_sendgrid.svg)](https://github.com/sensodevices/async_sendgrid/blob/main/LICENSE)
 
-# Installation
+A modern, asynchronous SendGrid client built on top of `httpx`. This library provides a simple and efficient way to send emails using SendGrid's API with Python's async/await syntax.
 
-You can install Sendgrid-Async using pip with the following command:
+## Features
 
-```shell
+- 🚀 Asynchronous email sending using `httpx`
+- 🔒 Type-safe with comprehensive type hints
+- ⚡️ Efficient connection pooling and session management
+- 🛠️ Compatible with SendGrid's official Python library
+- 📦 Easy installation and simple API
+
+## Requirements
+
+- Python 3.10 or higher
+- SendGrid API key
+
+## Installation
+
+Install the package using pip:
+
+```bash
 pip install sendgrid-async
 ```
 
-# Usage
+Or using Poetry:
 
-Here is a brief script demonstrating how to send an email using Async-Sendgrid:
-
-First, import the `SendgridAPI` from the `sendgrid-async` package. Then, create a SendgridAPI object using your API key.
-
-```python
-from async_sendgrid import SendgridAPI
-import os
-
-API_KEY = os.environ.get('SECRET_API_KEY')
-sendgrid = SendgridAPI(API_KEY)
+```bash
+poetry add sendgrid-async
 ```
 
-Next, we can create an email using the original `sendgrid` library as follows:
+## Quick Start
+
+Here's a simple example of how to send an email:
 
 ```python
+import os
+from async_sendgrid import SendgridAPI
 from sendgrid.helpers.mail import Content, Email, Mail, To
 
-from_email = Email("test@example.com")
-to_email = To("test@example.com")
-subject = "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
-content = Content("text/plain", "Sed varius ligula ac urna vehicula ultrices. Nunc ut dolor sem.")
+# Initialize the client
+api_key = os.environ.get('SENDGRID_API_KEY')
+sendgrid = SendgridAPI(api_key)
 
-mail = Mail(
-    from_email=from_email,
-    to_email=to_email,
-    subject=subject,
-    content=content
-    )
-```
+# Create email content
+from_email = Email("sender@example.com")
+to_email = To("recipient@example.com")
+subject = "Hello from Async-Sendgrid!"
+content = Content("text/plain", "This is a test email sent using Async-Sendgrid.")
 
-An email can be sent to sendgrid servers with the  `send` API of the `SendgridAPI` instance:
+# Create mail object
+mail = Mail(from_email, to_email, subject, content)
 
-```python
+# Send the email
 async with sendgrid as client:
-    response = await client.send(data)
+    response = await client.send(mail)
 ```
 
-For testing purposes, you can modify the API endpoint as follows:
+## Advanced Usage
+
+### Custom Endpoint
+
+For testing or development purposes, you can specify a custom endpoint:
 
 ```python
-sendgrid = SendgridAPI(api_key="SECRET_API_KEY", endpoint="https://localhost:3000/v3/mail/send")
+sendgrid = SendgridAPI(
+    api_key="YOUR_API_KEY",
+    endpoint="https://localhost:3000/v3/mail/send"
+)
 ```
+
+### Error Handling
+
+The library provides proper error handling for API responses:
+
+```python
+from async_sendgrid.exceptions import SendgridError
+
+try:
+    async with sendgrid as client:
+        response = await client.send(mail)
+except SendgridError as e:
+    print(f"Failed to send email: {e}")
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [SendGrid](https://sendgrid.com/) for their excellent email service
+- [httpx](https://www.python-httpx.org/) for the async HTTP client
