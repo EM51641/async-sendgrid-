@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sendgrid-async"
-version = "2.0.2"
+version = "2.0.3"
 description = "SendGrid using a client based on httpx."
 license = "MIT"
 authors = ["Elyes Mahjoubo <elyesmahjoubi@gmail.com>"]
@@ -17,6 +17,11 @@ classifiers = [
 
 packages = [
     { include = "async_sendgrid" },
+]
+
+include = [
+    "LICENSE",
+    "README.md"
 ]
 
 [tool.poetry.dependencies]
