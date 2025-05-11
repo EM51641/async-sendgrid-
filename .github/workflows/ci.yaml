@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup the environment
-        uses: ./.github/actions/build_app
+        uses: ./.github/actions/build_env
         with:
           python-version: ${{ matrix.python-version }}
 
