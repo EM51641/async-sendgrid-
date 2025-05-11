@@ -1,4 +1,5 @@
 import os
+
 import pytest
 from httpx import request
 from sendgrid import Mail  # type: ignore
@@ -16,12 +17,13 @@ def client():
     client = SendgridAPI(
         api_key=secret_key,
         endpoint=endpoint,
-        impersonate_subuser=impersonate_subuser
+        impersonate_subuser=impersonate_subuser,
     )
 
     yield client
 
     request("DELETE", url="http://localhost:3000/api/mails")
+
 
 @pytest.fixture
 def email() -> Mail:
@@ -33,10 +35,12 @@ def email() -> Mail:
     )
     return email
 
+
 @pytest.fixture
 def messages_received():
-        response = request("GET", url="http://localhost:3000/api/mails")
-        return response.json()
+    response = request("GET", url="http://localhost:3000/api/mails")
+    return response.json()
+
 
 @pytest.mark.asyncio
 async def test_post_status(client: SendgridAPI, email: Mail) -> None:
@@ -55,8 +59,11 @@ async def test_post_status(client: SendgridAPI, email: Mail) -> None:
 
     assert response.status_code == 202
 
+
 @pytest.mark.asyncio
-async def test_session_closed_exception(client: SendgridAPI, email: Mail) -> None:
+async def test_session_closed_exception(
+    client: SendgridAPI, email: Mail
+) -> None:
     """
     Test that the SessionClosedException is raised when the session is closed.
     """
@@ -67,8 +74,11 @@ async def test_session_closed_exception(client: SendgridAPI, email: Mail) -> Non
         with pytest.raises(SessionClosedException):
             await client.send(email)
 
+
 @pytest.mark.asyncio
-async def test_if_messages_sent_are_correct(client: SendgridAPI, email: Mail) -> None:
+async def test_if_messages_sent_are_correct(
+    client: SendgridAPI, email: Mail
+) -> None:
     """
     Test if the sent messages are valid.
     Args:
@@ -91,6 +101,4 @@ async def test_if_messages_sent_are_correct(client: SendgridAPI, email: Mail) ->
     assert msg["personalizations"] == [
         {"to": [{"email": "mahndoe@example.com"}]}
     ]
-    assert msg["content"] == [
-        {"type": "text/plain", "value": "Hello World!"}
-    ]
+    assert msg["content"] == [{"type": "text/plain", "value": "Hello World!"}]

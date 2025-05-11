@@ -2,6 +2,7 @@ import pytest
 
 from async_sendgrid.sendgrid import SendgridAPI
 
+
 @pytest.fixture
 def client() -> SendgridAPI:
     secret_key = "SECRET_KEY"
@@ -10,6 +11,7 @@ def client() -> SendgridAPI:
         api_key=secret_key, impersonate_subuser=impersonate_subuser
     )
     return client
+
 
 def test_constructor(client: SendgridAPI) -> None:
     """

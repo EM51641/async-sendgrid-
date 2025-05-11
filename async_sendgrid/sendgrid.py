@@ -105,7 +105,9 @@ class SendgridAPI(BaseSendgridAPI):
         assert self._session
 
         if self._session.is_closed:
-            raise SessionClosedException("Session was closed, establishing new connection")
+            raise SessionClosedException(
+                "Session was closed, establishing new connection"
+            )
 
         json_message = message.get()
         response = await self._session.post(
