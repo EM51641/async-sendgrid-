@@ -16,7 +16,8 @@ def client():
     client = SendgridAPI(
         api_key=secret_key,
         endpoint=endpoint,
-        impersonate_subuser=impersonate_subuser,
+        impersonate_subuser=impersonate_subuser
+    )
 
     yield client
 
