@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from httpx import AsyncClient  # type: ignore
 
+from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.utils import create_session
 
 if TYPE_CHECKING:
@@ -84,6 +85,10 @@ class SendgridAPI(BaseSendgridAPI):
     def headers(self) -> dict[Any, Any]:
         return self._headers
 
+    @property
+    def session(self) -> AsyncClient | None:
+        return self._session
+
     async def send(self, message: Mail) -> Response:
         """
         Make a Twilio SendGrid v3 API request with the request body generated
@@ -99,6 +104,9 @@ class SendgridAPI(BaseSendgridAPI):
         """
         assert self._session
 
+        if self._session.is_closed:
+            raise SessionClosedException("Session was closed, establishing new connection")
+
         json_message = message.get()
         response = await self._session.post(
             url=self._endpoint, json=json_message
@@ -106,11 +114,9 @@ class SendgridAPI(BaseSendgridAPI):
         return response
 
     async def __aenter__(self):
-        if not self._session or self._session.is_closed:
-            self._session = create_session(headers=self._headers)
+        self._session = create_session(headers=self._headers)
         return self
 
     async def __aexit__(self, exc_type: Any, exc: Any, tb: Any):
         assert self._session
-
         await self._session.aclose()

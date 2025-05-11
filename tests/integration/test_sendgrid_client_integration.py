@@ -1,25 +1,27 @@
+import os
 import pytest
 from httpx import request
 from sendgrid import Mail  # type: ignore
 
+from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.sendgrid import SendgridAPI
 
 
 class TestSendgridClient:
 
-    @pytest.fixture(autouse=True)
-    def setup(self):
+    @pytest.fixture()
+    def client(self):
         """Setup client"""
-        secret_key = "SG.test123"
+        secret_key = os.environ["SENDGRID_API_KEY"]
         impersonate_subuser = "John Smith"
         endpoint = "http://localhost:3000/v3/mail/send"
-        self._service = SendgridAPI(
+        client = SendgridAPI(
             api_key=secret_key,
             endpoint=endpoint,
             impersonate_subuser=impersonate_subuser,
         )
 
-        yield
+        yield client
 
         request("DELETE", url="http://localhost:3000/api/mails")
 
@@ -39,7 +41,7 @@ class TestSendgridClient:
         return response.json()
 
     @pytest.mark.asyncio
-    async def test_post_status(self, email: Mail) -> None:
+    async def test_post_status(self, client: SendgridAPI, email: Mail) -> None:
         """
         Test the status code of the POST request.
 
@@ -52,13 +54,27 @@ class TestSendgridClient:
         Raises:
             AssertionError: If the response status code is not 202.
         """
-        async with self._service as client:
+        async with client:
             response = await client.send(email)
 
         assert response.status_code == 202
 
     @pytest.mark.asyncio
-    async def test_if_messages_sent_are_correct(self, email: Mail) -> None:
+    async def test_session_closed_exception(self, client: SendgridAPI, email: Mail) -> None:
+        """
+        Test that the SessionClosedException is raised when the session is closed.
+        """
+        async with client:
+
+            assert client.session
+            await client.session.aclose()
+            assert client.session.is_closed
+    
+            with pytest.raises(SessionClosedException):
+                await client.send(email)
+
+    @pytest.mark.asyncio
+    async def test_if_messages_sent_are_correct(self, client: SendgridAPI, email: Mail) -> None:
         """
         Test if the sent messages are valid.
 
@@ -68,8 +84,7 @@ class TestSendgridClient:
         Returns:
             None
         """
-
-        async with self._service as client:
+        async with client:
             await client.send(email)
 
         response = request("GET", url="http://localhost:3000/api/mails")
