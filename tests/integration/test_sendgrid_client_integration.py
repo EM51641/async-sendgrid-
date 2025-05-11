@@ -1,3 +1,4 @@
+import os
 import pytest
 from httpx import request
 from sendgrid import Mail  # type: ignore
@@ -10,7 +11,7 @@ class TestSendgridClient:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup client"""
-        secret_key = "SG.test123"
+        secret_key = os.environ["SENDGRID_API_KEY"]
         impersonate_subuser = "John Smith"
         endpoint = "http://localhost:3000/v3/mail/send"
         self._service = SendgridAPI(
