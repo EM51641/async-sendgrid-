@@ -17,7 +17,6 @@ def client():
         api_key=secret_key,
         endpoint=endpoint,
         impersonate_subuser=impersonate_subuser,
-        )
 
     yield client
 
