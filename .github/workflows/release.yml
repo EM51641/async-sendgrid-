@@ -43,14 +43,6 @@ jobs:
       - name: Build distribution
         run: poetry build
 
-      - name: Upload distribution files
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/**
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
@@ -60,3 +52,11 @@ jobs:
           inputs: >-
             dist/*.tar.gz
             dist/*.whl
+
+      - name: Upload distribution files
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
