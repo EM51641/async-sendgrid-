@@ -19,6 +19,8 @@ jobs:
 
       - name: Run CI workflow
         uses: ./.github/workflows/ci.yml
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
   publish:
     runs-on: ubuntu-latest
