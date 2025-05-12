@@ -10,7 +10,7 @@ inputs:
       required: false
       type: boolean
       default: false
-    
+
     poetry-virtualenvs-in-project:
       required: false
       type: boolean

@@ -31,8 +31,21 @@ class BaseSendgridAPI(ABC):
     def headers(self) -> dict[Any, Any]:
         """Not implemented"""
 
+    @property
+    @abstractmethod
+    def session(self) -> AsyncClient | None:
+        """Not implemented"""
+
     @abstractmethod
     async def send(self, message: Mail) -> Response:
+        """Not implemented"""
+
+    @abstractmethod
+    async def __aenter__(self) -> BaseSendgridAPI:
+        """Not implemented"""
+
+    @abstractmethod
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
         """Not implemented"""
 
 
@@ -115,10 +128,16 @@ class SendgridAPI(BaseSendgridAPI):
         )
         return response
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> SendgridAPI:
         self._session = create_session(headers=self._headers)
         return self
 
-    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any):
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
         assert self._session
         await self._session.aclose()
+
+    def __str__(self) -> str:
+        return f"SendGrid API Client\n  • Endpoint: {self._endpoint}\n"
+
+    def __repr__(self) -> str:
+        return f"SendgridAPI(endpoint={self._endpoint})"
