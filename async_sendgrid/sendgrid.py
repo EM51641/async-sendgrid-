@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from httpx import AsyncClient  # type: ignore
 
+from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.utils import create_session
 
 if TYPE_CHECKING:
@@ -30,8 +31,21 @@ class BaseSendgridAPI(ABC):
     def headers(self) -> dict[Any, Any]:
         """Not implemented"""
 
+    @property
+    @abstractmethod
+    def session(self) -> AsyncClient | None:
+        """Not implemented"""
+
     @abstractmethod
     async def send(self, message: Mail) -> Response:
+        """Not implemented"""
+
+    @abstractmethod
+    async def __aenter__(self) -> BaseSendgridAPI:
+        """Not implemented"""
+
+    @abstractmethod
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
         """Not implemented"""
 
 
@@ -84,6 +98,10 @@ class SendgridAPI(BaseSendgridAPI):
     def headers(self) -> dict[Any, Any]:
         return self._headers
 
+    @property
+    def session(self) -> AsyncClient | None:
+        return self._session
+
     async def send(self, message: Mail) -> Response:
         """
         Make a Twilio SendGrid v3 API request with the request body generated
@@ -99,18 +117,27 @@ class SendgridAPI(BaseSendgridAPI):
         """
         assert self._session
 
+        if self._session.is_closed:
+            raise SessionClosedException(
+                "Session was closed, establishing new connection"
+            )
+
         json_message = message.get()
         response = await self._session.post(
             url=self._endpoint, json=json_message
         )
         return response
 
-    async def __aenter__(self):
-        if not self._session or self._session.is_closed:
-            self._session = create_session(headers=self._headers)
+    async def __aenter__(self) -> SendgridAPI:
+        self._session = create_session(headers=self._headers)
         return self
 
-    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any):
+    async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
         assert self._session
-
         await self._session.aclose()
+
+    def __str__(self) -> str:
+        return f"SendGrid API Client\n  • Endpoint: {self._endpoint}\n"
+
+    def __repr__(self) -> str:
+        return f"SendgridAPI(endpoint={self._endpoint})"

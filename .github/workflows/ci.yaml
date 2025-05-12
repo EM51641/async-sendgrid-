@@ -11,11 +11,13 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      SENDGRID_API_KEY: SG.test123
     services:
         sendgrid:
           image: ghashange/sendgrid-mock:1.9.0
           env:
-            API_KEY: SG.test123
+            API_KEY: ${{ env.SENDGRID_API_KEY }}
           ports:
             - 3000:3000
     strategy:
@@ -40,6 +42,8 @@ jobs:
       
       - name: Run tests
         run: poetry run python -m pytest --cov=async_sendgrid
+        env:
+          SENDGRID_API_KEY: ${{ env.SENDGRID_API_KEY }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
