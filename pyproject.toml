@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "sendgrid-async"
 version = "2.0.4"
-description = "SendGrid using a client based on httpx."
+description = "SendGrid using an httpx client"
 license = "MIT"
 authors = ["Elyes Mahjoubi <elyesmahjoubi@gmail.com>"]
 readme = "README.md"
 repository = "https://github.com/EM51641/async-sendgrid-"
-keywords = ["sendgrid", "async", "httpx"]
+keywords = ["sendgrid", "client", "async"]
 classifiers = [
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
@@ -37,9 +37,6 @@ pytest-cov = "^4.0.0"
 mypy = "^1.0.0"
 flake8 = "^6.0.0"
 black = "^23.9.0"
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.4"
 
 [tool.black]
 line-length = 79
