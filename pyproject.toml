@@ -31,7 +31,7 @@ sendgrid = "^6.7.0"
 httpx = "^0.24.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.4.2"
+pytest = "^8.3.5"
 pytest-asyncio = "^0.15.1"
 pytest-cov = "^4.0.0"
 mypy = "^1.0.0"
