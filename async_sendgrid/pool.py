@@ -1,4 +1,3 @@
-from asyncio import Timeout
 from typing import Any
 
 from httpx import AsyncClient, Limits  # type: ignore
@@ -20,9 +19,12 @@ class ConnectionPool:
         Initialize the connection pool.
 
         Args:
-            max_connections (int, optional): Maximum number of concurrent connections. Defaults to 10.
-            max_keepalive_connections (int, optional): Maximum number of keep-alive connections. Defaults to 5.
-            keepalive_expiry (float, optional): Keep-alive connection expiry time in seconds. Defaults to 5.0.
+            max_connections (int, optional):
+                Maximum number of concurrent connections. Defaults to 10.
+            max_keepalive_connections (int, optional):
+                Maximum number of keep-alive connections. Defaults to 5.
+            keepalive_expiry (float, optional):
+                Keep-alive connection expiry time in seconds. Defaults to 5.0.
         """
         self._limits = Limits(
             max_connections=max_connections,
