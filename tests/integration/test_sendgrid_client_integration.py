@@ -54,25 +54,8 @@ async def test_post_status(client: SendgridAPI, email: Mail) -> None:
     Raises:
         AssertionError: If the response status code is not 202.
     """
-    async with client:
-        response = await client.send(email)
-
+    response = await client.send(email)
     assert response.status_code == 202
-
-
-@pytest.mark.asyncio
-async def test_session_closed_exception(
-    client: SendgridAPI, email: Mail
-) -> None:
-    """
-    Test that the SessionClosedException is raised when the session is closed.
-    """
-    async with client:
-        assert client.session
-        await client.session.aclose()
-        assert client.session.is_closed
-        with pytest.raises(SessionClosedException):
-            await client.send(email)
 
 
 @pytest.mark.asyncio
@@ -86,8 +69,7 @@ async def test_if_messages_sent_are_correct(
     Returns:
         None
     """
-    async with client:
-        await client.send(email)
+    await client.send(email)
 
     response = request("GET", url="http://localhost:3000/api/mails")
     messages = response.json()

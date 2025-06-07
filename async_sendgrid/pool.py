@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Any, Dict
+from asyncio import Timeout
+from typing import Any
 
 from httpx import AsyncClient, Limits  # type: ignore
 
@@ -7,6 +7,7 @@ from httpx import AsyncClient, Limits  # type: ignore
 class ConnectionPool:
     """
     A connection pool manager for SendGrid API requests.
+    This is a private class and is not meant to be used directly.
     """
 
     def __init__(
@@ -30,9 +31,9 @@ class ConnectionPool:
         )
         self._client: AsyncClient | None = None
 
-    def create_client(self, headers: dict[str, Any]) -> AsyncClient:
+    def _create_client(self, headers: dict[str, Any]) -> AsyncClient:
         """
-        Create a new HTTP client with the configured connection limits.
+        Get or create an HTTP client with the configured connection limits.
 
         Args:
             headers (dict[str, Any]): The headers to use for the client.
@@ -40,7 +41,7 @@ class ConnectionPool:
         Returns:
             AsyncClient: The configured HTTP client.
         """
-        return AsyncClient(headers=headers, limits=self._limits)
+        return AsyncClient(headers=headers, limits=self._limits, timeout=5.0)
 
     @property
     def limits(self) -> Limits:
