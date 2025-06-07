@@ -23,14 +23,12 @@ async def test_concurrent_requests(pool: ConnectionPool):
     client = pool._create_client(headers)
 
     # Make concurrent requests
-    tasks = [
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-        asyncio.create_task(client.get("http://localhost:3000/api/mails")),
-    ]
+    tasks = []
+    for _ in range(10):
+        tasks.append(
+            asyncio.create_task(client.get("http://localhost:3000/api/mails"))
+        )
+
     responses = await asyncio.gather(*tasks)
 
     assert all(response.status_code == 200 for response in responses)
