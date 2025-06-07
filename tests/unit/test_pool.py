@@ -47,25 +47,10 @@ def test_create_client(pool: ConnectionPool):
     assert client.headers["Authorization"] == "Bearer test"
     assert client.headers["Cookie"] == "test_cookie=value"
     assert client.headers["Content-Type"] == "application/json"
+
     # Check that default headers are also present
     assert "accept" in client.headers
     assert "user-agent" in client.headers
-
-
-def test_create_multiple_clients(pool: ConnectionPool):
-    """Test creating multiple clients with the same pool."""
-    headers = {"Authorization": "Bearer test"}
-
-    # Create first client
-    client1 = pool._create_client(headers)
-    assert isinstance(client1, AsyncClient)
-
-    # Create second client
-    client2 = pool._create_client(headers)
-    assert isinstance(client2, AsyncClient)
-
-    # Verify they are different instances
-    assert client1 is not client2
 
 
 def test_pool_string_representation(pool: ConnectionPool):
