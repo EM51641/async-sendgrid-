@@ -1,0 +1,60 @@
+from dataclasses import dataclass
+from typing import Any, Dict
+
+from httpx import AsyncClient, Limits  # type: ignore
+
+
+class ConnectionPool:
+    """
+    A connection pool manager for SendGrid API requests.
+    """
+
+    def __init__(
+        self,
+        max_connections: int = 10,
+        max_keepalive_connections: int = 5,
+        keepalive_expiry: float = 5.0,
+    ) -> None:
+        """
+        Initialize the connection pool.
+
+        Args:
+            max_connections (int, optional): Maximum number of concurrent connections. Defaults to 10.
+            max_keepalive_connections (int, optional): Maximum number of keep-alive connections. Defaults to 5.
+            keepalive_expiry (float, optional): Keep-alive connection expiry time in seconds. Defaults to 5.0.
+        """
+        self._limits = Limits(
+            max_connections=max_connections,
+            max_keepalive_connections=max_keepalive_connections,
+            keepalive_expiry=keepalive_expiry,
+        )
+        self._client: AsyncClient | None = None
+
+    def create_client(self, headers: dict[str, Any]) -> AsyncClient:
+        """
+        Create a new HTTP client with the configured connection limits.
+
+        Args:
+            headers (dict[str, Any]): The headers to use for the client.
+
+        Returns:
+            AsyncClient: The configured HTTP client.
+        """
+        return AsyncClient(headers=headers, limits=self._limits)
+
+    @property
+    def limits(self) -> Limits:
+        """
+        Get the current connection limits.
+
+        Returns:
+            Limits: The current connection limits configuration.
+        """
+        return self._limits
+
+    def __str__(self) -> str:
+        return (
+            f"ConnectionPool(max_connections={self._limits.max_connections}, "
+            f"max_keepalive={self._limits.max_keepalive_connections}, "
+            f"keepalive_expiry={self._limits.keepalive_expiry})"
+        )
