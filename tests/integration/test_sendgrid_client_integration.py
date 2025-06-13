@@ -4,7 +4,6 @@ import pytest
 from httpx import request
 from sendgrid import Mail  # type: ignore
 
-from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.sendgrid import SendgridAPI
 
 
@@ -34,12 +33,6 @@ def email() -> Mail:
         plain_text_content="Hello World!",
     )
     return email
-
-
-@pytest.fixture
-def messages_received():
-    response = request("GET", url="http://localhost:3000/api/mails")
-    return response.json()
 
 
 @pytest.mark.asyncio

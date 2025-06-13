@@ -74,6 +74,37 @@ sendgrid = SendgridAPI(
 )
 ```
 
+### Telemetry Integration
+
+The library provides hooks for integrating with your preferred telemetry system. Here's an example using OpenTelemetry:
+
+```python
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from async_sendgrid.telemetry import setup_opentelemetry
+
+# Set up your telemetry system
+tracer_provider = TracerProvider()
+trace.set_tracer_provider(tracer_provider)
+
+# Add your preferred exporter
+otlp_exporter = OTLPSpanExporter()
+span_processor = BatchSpanProcessor(otlp_exporter)
+tracer_provider.add_span_processor(span_processor)
+
+# Setup the library's telemetry
+setup_opentelemetry()
+```
+
+Now you can track both exceptions and normal operations in your telemetry system. The library will automatically:
+- Record exceptions when they occur
+- Create spans for important operations
+- Maintain the trace context across async operations
+- Track HTTP status codes and response sizes
+- Monitor connection state
+
 ### Error Handling
 
 The library provides proper error handling for API responses:

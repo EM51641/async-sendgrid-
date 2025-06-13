@@ -4,9 +4,12 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 from httpx import AsyncClient  # type: ignore
+from opentelemetry.trace.span import Span
+from opentelemetry.trace.status import StatusCode
 
 from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.pool import ConnectionPool
+from async_sendgrid.telemetry import create_span
 
 if TYPE_CHECKING:
     from typing import Any, Optional
@@ -118,20 +121,84 @@ class SendgridAPI(BaseSendgridAPI):
         ----
             :return: The Twilio SendGrid v3 API response
         """
+        with _create_sendgrid_client_span(message, self._endpoint) as span:
+            self._check_session_closed(span)
 
-        if self._session.is_closed:
-            raise SessionClosedException(
-                "Session was closed, establishing new connection"
+            json_message = message.get()
+            response = await self._session.post(
+                url=self._endpoint, json=json_message
             )
+            self._set_response_metrics(span, response)
+            return response
 
-        json_message = message.get()
-        response = await self._session.post(
-            url=self._endpoint, json=json_message
+    def _check_session_closed(self, span: Span):
+        if self._session.is_closed:
+            span.set_attributes(
+                {
+                    "error.message": "Session not initialized",
+                    "error.type": "SessionClosedException",
+                }
+            )
+            span.set_status(
+                StatusCode.ERROR,
+                "Session not initialized",
+            )
+            raise SessionClosedException("Session not initialized")
+
+    def _set_response_metrics(self, span: Span, response: Response):
+        span.set_attributes(
+            {
+                "http.status_code": response.status_code,
+                "http.content_length": (
+                    len(response.content) if response.content else 0
+                ),
+            }
         )
-        return response
+
+        if response.status_code >= 400:
+            span.set_status(
+                StatusCode.ERROR,
+                f"Request failed with status code {response.status_code}",
+            )
 
     def __str__(self) -> str:
         return f"SendGrid API Client\n  • Endpoint: {self._endpoint}\n"
 
     def __repr__(self) -> str:
         return f"SendgridAPI(endpoint={self._endpoint})"
+
+
+def _create_sendgrid_client_span(message: Mail, endpoint: str) -> Span:
+    """
+    Create a span for tracking SendGrid API requests.
+
+    This function creates a span with metrics about the SendGrid email being sent,
+    including:
+    - The endpoint being used
+    - Size of the message
+    - Whether the message has attachments
+    - Content types in the message
+    - Number of recipients
+
+    Parameters:
+    ----
+        :param message: The SendGrid Mail object containing the email details
+
+    Returns:
+    ----
+        :return: A span object for tracking the API request
+    """
+    return create_span(
+        "sendgrid.send",
+        {
+            "http.url": endpoint,
+            "http.message_size": len(str(message.get())),
+            "http.has_attachments": bool(message.attachment),
+            "http.content_types": [c.type for c in message.content or []],
+            "http.num_recipients": (
+                len(message.personalizations[0].tos)
+                if message.personalizations
+                else 0
+            ),
+        },
+    )
