@@ -1,9 +1,7 @@
 import asyncio
 
 import pytest
-from httpx import Response
 
-from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.pool import ConnectionPool
 
 
