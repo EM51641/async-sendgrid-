@@ -1,6 +1,3 @@
-import os
-from unittest.mock import Mock
-
 import pytest
 from httpx import URL, Request, Response
 from opentelemetry import trace
@@ -12,13 +9,10 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 from opentelemetry.trace.span import Span
 from sendgrid.helpers.mail import Attachment, Mail  # type: ignore
 
-import async_sendgrid.telemetry
-from async_sendgrid.sendgrid import SendgridAPI
 from async_sendgrid.telemetry import (
     create_span,
     set_http_metrics,
     set_sendgrid_metrics,
-    trace_client,
 )
 
 

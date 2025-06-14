@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Generator
 
@@ -29,7 +28,7 @@ def tracer_config(
 
 
 @pytest.fixture
-def client() -> Generator[SendgridAPI, None, None]:
+def client() -> SendgridAPI:
     """Setup client"""
     secret_key = os.environ["SENDGRID_API_KEY"]
     on_behalf_of = "John Smith"
@@ -39,10 +38,7 @@ def client() -> Generator[SendgridAPI, None, None]:
         endpoint=endpoint,
         on_behalf_of=on_behalf_of,
     )
-
-    yield client
-
-    request("DELETE", url="http://localhost:3000/api/mails")
+    return client
 
 
 @pytest.fixture

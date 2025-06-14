@@ -10,20 +10,16 @@ from async_sendgrid.sendgrid import SendgridAPI
 
 
 @pytest.fixture
-def client():
+def client() -> SendgridAPI:
     """Setup client"""
     secret_key = os.environ["SENDGRID_API_KEY"]
     on_behalf_of = "John Smith"
     endpoint = "http://localhost:3000/v3/mail/send"
     client = SendgridAPI(
-        api_key=secret_key,
-        endpoint=endpoint,
-        on_behalf_of=on_behalf_of,
+        api_key=secret_key, endpoint=endpoint, on_behalf_of=on_behalf_of
     )
 
-    yield client
-
-    request("DELETE", url="http://localhost:3000/api/mails")
+    return client
 
 
 @pytest.mark.asyncio
