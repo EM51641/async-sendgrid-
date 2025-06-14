@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pytest
@@ -25,25 +26,8 @@ def client():
     request("DELETE", url="http://localhost:3000/api/mails")
 
 
-@pytest.fixture
-def email() -> Mail:
-    email = Mail(
-        from_email="johndoe@example.com",
-        to_emails="mahndoe@example.com",
-        subject="Example email",
-        plain_text_content="Hello World!",
-    )
-    return email
-
-
-@pytest.fixture
-def messages_received():
-    response = request("GET", url="http://localhost:3000/api/mails")
-    return response.json()
-
-
 @pytest.mark.asyncio
-async def test_post_status(client: SendgridAPI, email: Mail) -> None:
+async def test_post_status(client: SendgridAPI) -> None:
     """
     Test the status code of the POST request.
 
@@ -54,14 +38,19 @@ async def test_post_status(client: SendgridAPI, email: Mail) -> None:
     Raises:
         AssertionError: If the response status code is not 202.
     """
-    response = await client.send(email)
+    response = await client.send(
+        Mail(
+            from_email="johndoe@example.com",
+            to_emails="mahndoe@example.com",
+            subject="Example email",
+            plain_text_content="Hello World!",
+        )
+    )
     assert response.status_code == 202
 
 
 @pytest.mark.asyncio
-async def test_if_messages_sent_are_correct(
-    client: SendgridAPI, email: Mail
-) -> None:
+async def test_if_messages_sent_are_correct(client: SendgridAPI) -> None:
     """
     Test if the sent messages are valid.
     Args:
@@ -69,6 +58,13 @@ async def test_if_messages_sent_are_correct(
     Returns:
         None
     """
+    email = Mail(
+        from_email="johndoe@example.com",
+        to_emails="mahndoe@example.com",
+        subject="Example email",
+        plain_text_content="Hello World!",
+    )
+
     await client.send(email)
 
     response = request("GET", url="http://localhost:3000/api/mails")
@@ -84,3 +80,27 @@ async def test_if_messages_sent_are_correct(
         {"to": [{"email": "mahndoe@example.com"}]}
     ]
     assert msg["content"] == [{"type": "text/plain", "value": "Hello World!"}]
+
+
+@pytest.mark.asyncio
+async def test_if_session_is_closed_raises_exception(
+    client: SendgridAPI, caplog: pytest.LogCaptureFixture
+):
+    """
+    Test if the session is closed raises an exception.
+    """
+
+    email = Mail()
+
+    await client.session.aclose()
+
+    with pytest.raises(SessionClosedException):
+        await client.send(email)
+
+    assert caplog.record_tuples == [
+        (
+            "async_sendgrid.sendgrid",
+            logging.ERROR,
+            "Session not initialized",
+        )
+    ]

@@ -1,5 +1,10 @@
+"""
+Sendgrid API client.
+"""
+
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -7,6 +12,9 @@ from httpx import AsyncClient  # type: ignore
 
 from async_sendgrid.exception import SessionClosedException
 from async_sendgrid.pool import ConnectionPool
+from async_sendgrid.telemetry import trace_client
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from typing import Any, Optional
@@ -105,30 +113,36 @@ class SendgridAPI(BaseSendgridAPI):
     def session(self) -> AsyncClient:
         return self._session
 
-    async def send(self, message: Mail) -> Response:
+    @trace_client()
+    async def send(self, email: Mail) -> Response:
         """
         Make a Twilio SendGrid v3 API request with the request body generated
         by the Mail object
 
-        Parameters:
-        ----
-            :param message: The Twilio SendGrid v3 API request body generated
+        Args:
+            email: The Twilio SendGrid v3 API request body generated
                 by the Mail object or dict
+
         Returns:
-        ----
-            :return: The Twilio SendGrid v3 API response
+            The Twilio SendGrid v3 API response
         """
-
-        if self._session.is_closed:
-            raise SessionClosedException(
-                "Session was closed, establishing new connection"
-            )
-
-        json_message = message.get()
+        self._check_session_closed()
+        json_message = email.get()
         response = await self._session.post(
             url=self._endpoint, json=json_message
         )
         return response
+
+    def _check_session_closed(self):
+        """
+        Check if the session is closed.
+
+        Raises:
+            SessionClosedException: If the session is closed.
+        """
+        if self._session.is_closed:
+            logger.error("Session not initialized")
+            raise SessionClosedException("Session not initialized")
 
     def __str__(self) -> str:
         return f"SendGrid API Client\n  • Endpoint: {self._endpoint}\n"
