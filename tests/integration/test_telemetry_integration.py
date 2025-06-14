@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Generator
 
@@ -96,3 +97,68 @@ async def test_stack_trace_is_recorded(
     assert span.attributes["email.num_recipients"] == 1  # type: ignore
     assert span.status.description.startswith("Session not initialized")  # type: ignore
     assert span.status.is_ok == False
+
+
+@pytest.mark.asyncio
+async def test_telemetry_is_disabled(
+    email: Mail,
+    exporter: InMemorySpanExporter,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test that telemetry is properly disabled and returns original function."""
+    # Set environment variable for this test only
+    monkeypatch.setenv("SENDGRID_TELEMETRY_IS_ENABLED", "false")
+
+    # Reload module to pick up new environment variable
+    from importlib import reload
+
+    import async_sendgrid.sendgrid
+    import async_sendgrid.telemetry
+
+    # Reload both modules to ensure new configuration is picked up
+    reload(async_sendgrid.telemetry)
+    reload(async_sendgrid.sendgrid)
+
+    from async_sendgrid.sendgrid import SendgridAPI
+
+    secret_key = os.environ["SENDGRID_API_KEY"]
+    client = SendgridAPI(api_key=secret_key)
+
+    # Verify no spans are created
+    await client.send(email)
+    spans = exporter.get_finished_spans()
+    assert (
+        len(spans) == 0
+    ), "Spans were created even though telemetry is disabled"
+
+
+@pytest.mark.asyncio
+async def test_telemetry_custom_span_name(
+    email: Mail,
+    exporter: InMemorySpanExporter,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    custom_span_name = "custom.span.name"
+    monkeypatch.setenv("SENDGRID_TELEMETRY_SPAN_NAME", custom_span_name)
+
+    # Reload both modules to ensure new configuration is picked up
+    from importlib import reload
+
+    import async_sendgrid.sendgrid
+    import async_sendgrid.telemetry
+
+    # Reload both modules to ensure new configuration is picked up
+    reload(async_sendgrid.telemetry)
+    reload(async_sendgrid.sendgrid)
+
+    from async_sendgrid.sendgrid import SendgridAPI
+
+    secret_key = os.environ["SENDGRID_API_KEY"]
+    client = SendgridAPI(api_key=secret_key)
+
+    await client.send(email)
+
+    spans = exporter.get_finished_spans()
+    assert len(spans) == 1
+    span = spans[0]
+    assert span.name == custom_span_name

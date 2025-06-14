@@ -6,6 +6,7 @@ This is an internal module and should not be used directly.
 
 from __future__ import annotations
 
+import logging
 import os
 from functools import wraps
 from typing import TYPE_CHECKING
@@ -23,9 +24,18 @@ if TYPE_CHECKING:
 
     from async_sendgrid.sendgrid import SendgridAPI
 
+logger = logging.getLogger(__name__)
 
-_SPAN_NAME = os.getenv("SENDGRID_SPAN_NAME", "sendgrid.send")
+_SPAN_NAME = os.getenv("SENDGRID_TELEMETRY_SPAN_NAME", "sendgrid.send")
+logger.info("Telemetry span name is set as %s", _SPAN_NAME)
 
+if os.getenv("SENDGRID_TELEMETRY_IS_ENABLED", "true") == "false":
+    logger.info("Telemetry is disabled")
+    _SENGRID_TELEMETRY_ENABLED = False
+else:
+    _SENGRID_TELEMETRY_ENABLED = True
+
+print(_SENGRID_TELEMETRY_ENABLED)
 # Only create a default tracer provider if one isn't already set
 if trace.get_tracer_provider() is None:
     tracer_provider = TracerProvider()
@@ -45,7 +55,7 @@ def create_span(
     Returns:
         The span.
     """
-    tracer = trace.get_tracer(name)
+    tracer = trace.get_tracer(__name__)
     span = tracer.start_span(name, attributes=attributes)
     return span
 
@@ -62,6 +72,9 @@ def trace_client():
     """
 
     def decorator(func):
+        if _SENGRID_TELEMETRY_ENABLED is False:
+            return func
+
         @wraps(func)
         async def wrapper(self: SendgridAPI, email: Mail) -> Response:
             span = create_span(_SPAN_NAME)
@@ -73,7 +86,7 @@ def trace_client():
             except Exception as exc:
                 span.record_exception(exc)
                 span.set_status(Status(StatusCode.ERROR, str(exc)))
-                raise
+                raise exc
             finally:
                 span.end()
 
