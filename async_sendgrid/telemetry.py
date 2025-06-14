@@ -6,6 +6,7 @@ This is an internal module and should not be used directly.
 
 from __future__ import annotations
 
+import os
 from functools import wraps
 from typing import TYPE_CHECKING
 
@@ -15,14 +16,15 @@ from opentelemetry.trace.span import Span
 from opentelemetry.trace.status import Status, StatusCode
 
 if TYPE_CHECKING:
-    from typing import Any, Callable, Optional, TypeVar
+    from typing import Any, Optional
 
     from httpx import Response  # type: ignore
     from sendgrid.helpers.mail import Mail  # type: ignore
 
     from async_sendgrid.sendgrid import SendgridAPI
 
-    F = TypeVar("F", bound=Callable[..., Any])
+
+_SPAN_NAME = os.getenv("SENDGRID_SPAN_NAME", "sendgrid.send")
 
 # Only create a default tracer provider if one isn't already set
 if trace.get_tracer_provider() is None:
@@ -48,7 +50,7 @@ def create_span(
     return span
 
 
-def trace_client() -> Callable[[F], F]:
+def trace_client():
     """
     Decorator to trace the response of a SendgridAPI method.
 
@@ -59,13 +61,13 @@ def trace_client() -> Callable[[F], F]:
         The decorated function.
     """
 
-    def decorator(func: F) -> F:
+    def decorator(func):
         @wraps(func)
-        async def wrapper(self: SendgridAPI, mail: Mail) -> Response:
-            span = create_span("sendgrid.send")
+        async def wrapper(self: SendgridAPI, email: Mail) -> Response:
+            span = create_span(_SPAN_NAME)
             try:
-                set_sendgrid_metrics(span, mail)
-                response: Response = await func(self, mail)
+                set_sendgrid_metrics(span, email)
+                response: Response = await func(self, email)
                 set_http_metrics(span, response)
                 return response
             except Exception as exc:
@@ -75,9 +77,9 @@ def trace_client() -> Callable[[F], F]:
             finally:
                 span.end()
 
-        return wrapper  # type: ignore
+        return wrapper
 
-    return decorator  # type: ignore
+    return decorator
 
 
 def set_sendgrid_metrics(span: Span, message: Mail) -> None:

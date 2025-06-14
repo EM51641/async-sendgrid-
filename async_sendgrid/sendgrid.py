@@ -114,20 +114,20 @@ class SendgridAPI(BaseSendgridAPI):
         return self._session
 
     @trace_client()
-    async def send(self, message: Mail) -> Response:
+    async def send(self, email: Mail) -> Response:
         """
         Make a Twilio SendGrid v3 API request with the request body generated
         by the Mail object
 
         Args:
-            message: The Twilio SendGrid v3 API request body generated
+            email: The Twilio SendGrid v3 API request body generated
                 by the Mail object or dict
 
         Returns:
             The Twilio SendGrid v3 API response
         """
         self._check_session_closed()
-        json_message = message.get()
+        json_message = email.get()
         response = await self._session.post(
             url=self._endpoint, json=json_message
         )
