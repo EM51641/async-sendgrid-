@@ -66,14 +66,14 @@ sendgrid = SendgridAPI(
 )
 ```
 
-### Subuser Impersonation
+### Send emails on behalf of another user
 
 Send emails on behalf of subusers:
 
 ```python
 sendgrid = SendgridAPI(
     api_key="YOUR_API_KEY",
-    impersonate_subuser="John Smith",
+    on_behalf_of="John Smith",
 )
 ```
 

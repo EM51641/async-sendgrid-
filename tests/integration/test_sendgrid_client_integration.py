@@ -13,12 +13,12 @@ from async_sendgrid.sendgrid import SendgridAPI
 def client():
     """Setup client"""
     secret_key = os.environ["SENDGRID_API_KEY"]
-    impersonate_subuser = "John Smith"
+    on_behalf_of = "John Smith"
     endpoint = "http://localhost:3000/v3/mail/send"
     client = SendgridAPI(
         api_key=secret_key,
         endpoint=endpoint,
-        impersonate_subuser=impersonate_subuser,
+        on_behalf_of=on_behalf_of,
     )
 
     yield client

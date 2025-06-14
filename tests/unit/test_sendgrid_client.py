@@ -6,10 +6,8 @@ from async_sendgrid.sendgrid import SendgridAPI
 @pytest.fixture
 def client() -> SendgridAPI:
     secret_key = "SECRET_KEY"
-    impersonate_subuser = "John Smith"
-    client = SendgridAPI(
-        api_key=secret_key, impersonate_subuser=impersonate_subuser
-    )
+    on_behalf_of = "John Smith"
+    client = SendgridAPI(api_key=secret_key, on_behalf_of=on_behalf_of)
     return client
 
 

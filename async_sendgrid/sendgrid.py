@@ -64,17 +64,18 @@ class SendgridAPI(BaseSendgridAPI):
     :param api_key: The api key issued by Sendgrid.
     :param endpoint: The endpoint to send the request to. Defaults to
         "https://api.sendgrid.com/v3/mail/send".
-    :param impersonate_subuser: the subuser to impersonate. Will be passed
-        by "On-Behalf-Of" header by underlying client.
+    :param on_behalf_of: The subuser to send on behalf of. This will be passed
+        as the "On-Behalf-Of" header in API requests.
         See https://sendgrid.com/docs/User_Guide/Settings/subusers.html
         for more details.
+    :param pool: The connection pool to use. Defaults to a new ConnectionPool instance.
     """
 
     def __init__(
         self,
         api_key: str,
         endpoint: str = "https://api.sendgrid.com/v3/mail/send",
-        impersonate_subuser: Optional[str] = None,
+        on_behalf_of: Optional[str] = None,
         pool: ConnectionPool = ConnectionPool(),
     ):
         self._api_key = api_key
@@ -87,8 +88,8 @@ class SendgridAPI(BaseSendgridAPI):
             "Content-Type": "application/json",
         }
 
-        if impersonate_subuser:
-            self._headers["On-Behalf-Of"] = impersonate_subuser
+        if on_behalf_of:
+            self._headers["On-Behalf-Of"] = on_behalf_of
 
         self._pool = pool
         self._session = self._pool._create_client(self._headers)
