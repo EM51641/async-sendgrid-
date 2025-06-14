@@ -1,6 +1,15 @@
-from typing import Any
+"""
+Connection pool manager for SendGrid API requests.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from httpx import AsyncClient, Limits  # type: ignore
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class ConnectionPool:

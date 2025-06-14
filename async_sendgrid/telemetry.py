@@ -1,6 +1,11 @@
+"""
+Telemetry module for the async-sendgrid library.
+
+This is an internal module and should not be used directly.
+"""
+
 from __future__ import annotations
 
-import base64
 from functools import wraps
 from typing import TYPE_CHECKING
 
@@ -10,7 +15,7 @@ from opentelemetry.trace.span import Span
 from opentelemetry.trace.status import Status, StatusCode
 
 if TYPE_CHECKING:
-    from typing import Any, Callable, Coroutine, Optional, TypeVar
+    from typing import Any, Callable, Optional, TypeVar
 
     from httpx import Response  # type: ignore
     from sendgrid.helpers.mail import Mail  # type: ignore
@@ -28,23 +33,40 @@ if trace.get_tracer_provider() is None:
 def create_span(
     name: str, attributes: Optional[dict[str, Any]] = None
 ) -> Span:
-    """Create a new OpenTelemetry span"""
+    """
+    Create a new OpenTelemetry span.
+
+    Args:
+        name: The name of the span.
+        attributes: The attributes to set on the span.
+
+    Returns:
+        The span.
+    """
     tracer = trace.get_tracer(name)
     span = tracer.start_span(name, attributes=attributes)
     return span
 
 
-def trace_response() -> Callable[[F], F]:
+def trace_client() -> Callable[[F], F]:
+    """
+    Decorator to trace the response of a SendgridAPI method.
+
+    Args:
+        func: The function to decorate.
+
+    Returns:
+        The decorated function.
+    """
+
     def decorator(func: F) -> F:
         @wraps(func)
-        async def wrapper(
-            self: SendgridAPI, mail: Mail
-        ) -> Response:  # Explicit parameter type
+        async def wrapper(self: SendgridAPI, mail: Mail) -> Response:
             span = create_span("sendgrid.send")
             try:
-                _set_sendgrid_metrics(span, mail)
+                set_sendgrid_metrics(span, mail)
                 response: Response = await func(self, mail)
-                _set_http_metrics(span, response)
+                set_http_metrics(span, response)
                 return response
             except Exception as exc:
                 span.record_exception(exc)
@@ -58,21 +80,39 @@ def trace_response() -> Callable[[F], F]:
     return decorator  # type: ignore
 
 
-def _set_sendgrid_metrics(span: Span, message: Mail) -> None:
+def set_sendgrid_metrics(span: Span, message: Mail) -> None:
     """
     Set SendGrid metrics on a span.
+
+    Args:
+        span: The span to set the metrics on.
+        message: The message to set the metrics on.
+
+    Returns:
+        None
     """
     span.set_attributes(
         {
             "email.has_attachments": True if message.attachments else False,
-            "email.num_recipients": len(message.personalizations[0].tos),
+            "email.num_recipients": (
+                len(message.personalizations[0].tos)
+                if message.personalizations
+                else 0
+            ),
         }
     )
 
 
-def _set_http_metrics(span: Span, response: Response) -> None:
+def set_http_metrics(span: Span, response: Response) -> None:
     """
     Set response metrics on a span.
+
+    Args:
+        span: The span to set the metrics on.
+        response: The response to set the metrics on.
+
+    Returns:
+        None
     """
     span.set_attributes(
         {
