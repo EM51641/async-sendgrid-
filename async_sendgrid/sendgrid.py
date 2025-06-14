@@ -68,7 +68,8 @@ class SendgridAPI(BaseSendgridAPI):
         as the "On-Behalf-Of" header in API requests.
         See https://sendgrid.com/docs/User_Guide/Settings/subusers.html
         for more details.
-    :param pool: The connection pool to use. Defaults to a new ConnectionPool instance.
+    :param pool:
+        The connection pool to use. Defaults to a new ConnectionPool instance.
     """
 
     def __init__(
