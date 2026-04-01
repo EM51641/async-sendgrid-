@@ -35,7 +35,6 @@ if os.getenv("SENDGRID_TELEMETRY_IS_ENABLED", "true") == "false":
 else:
     _SENGRID_TELEMETRY_ENABLED = True
 
-print(_SENGRID_TELEMETRY_ENABLED)
 # Only create a default tracer provider if one isn't already set
 if trace.get_tracer_provider() is None:
     tracer_provider = TracerProvider()
