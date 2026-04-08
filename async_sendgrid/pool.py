@@ -137,8 +137,7 @@ class ConnectionPool:
         return (
             f"ConnectionPool("
             f"max_connections={self._limits.max_connections}, "
-            f"max_keepalive_connections={
-                self._limits.max_keepalive_connections}, "
+            f"max_keepalive_connections={self._limits.max_keepalive_connections}, "  # noqa: E501
             f"keepalive_expiry={self._limits.keepalive_expiry}, "
             f"retry_attempts={self._retry.total}, "
             f"backoff_factor={self._retry.backoff_factor}, "
