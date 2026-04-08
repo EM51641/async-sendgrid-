@@ -128,9 +128,7 @@ class ConnectionPool:
         retry_strategy = Retry(
             total=retry if retry is not None else self._retry.total,
             backoff_factor=(
-                backoff
-                if backoff is not None
-                else self._retry.backoff_factor
+                backoff if backoff is not None else self._retry.backoff_factor
             ),
             backoff_jitter=self._retry.backoff_jitter,
             allowed_methods=["POST"],
