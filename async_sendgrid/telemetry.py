@@ -75,7 +75,9 @@ def trace_client():
             return func
 
         @wraps(func)
-        async def wrapper(self: SendgridAPI, email: Mail, **kwargs: Any) -> Response:
+        async def wrapper(
+            self: SendgridAPI, email: Mail, **kwargs: Any
+        ) -> Response:
             span = create_span(_SPAN_NAME)
             try:
                 set_sendgrid_metrics(span, email)

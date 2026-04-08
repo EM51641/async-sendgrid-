@@ -151,7 +151,9 @@ class SendgridAPI(BaseSendgridAPI):
 
         return await self._send(self._session, json_message)
 
-    async def _send(self, client: AsyncClient, json_message: dict[str, Any]) -> Response:
+    async def _send(
+        self, client: AsyncClient, json_message: dict[str, Any]
+    ) -> Response:
         return await client.post(url=self._endpoint, json=json_message)
 
     def _build_client(

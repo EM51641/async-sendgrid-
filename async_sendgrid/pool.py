@@ -92,7 +92,11 @@ class ConnectionPool:
         if retry is not None or backoff is not None:
             retry_strategy = Retry(
                 total=retry if retry is not None else self._retry.total,
-                backoff_factor=backoff if backoff is not None else self._retry.backoff_factor,
+                backoff_factor=(
+                    backoff
+                    if backoff is not None
+                    else self._retry.backoff_factor
+                ),
                 backoff_jitter=self._retry.backoff_jitter,
                 allowed_methods=["POST"],
             )
@@ -107,29 +111,17 @@ class ConnectionPool:
     @staticmethod
     def _validate_retry_attempts(retry_attempts: int) -> None:
         if not isinstance(retry_attempts, int) or retry_attempts < 0:
-            raise ValueError(
-                "retry_attempts must be a positive integer"
-            )
+            raise ValueError("retry_attempts must be a positive integer")
 
     @staticmethod
     def _validate_backoff_factor(backoff_factor: float) -> None:
-        if (
-            not isinstance(backoff_factor, (int, float))
-            or backoff_factor < 0
-        ):
-            raise ValueError(
-                "backoff_factor must be a positive number"
-            )
+        if not isinstance(backoff_factor, (int, float)) or backoff_factor < 0:
+            raise ValueError("backoff_factor must be a positive number")
 
     @staticmethod
     def _validate_backoff_jitter(backoff_jitter: float) -> None:
-        if (
-            not isinstance(backoff_jitter, (int, float))
-            or backoff_jitter < 0
-        ):
-            raise ValueError(
-                "backoff_jitter must be a positive number"
-            )
+        if not isinstance(backoff_jitter, (int, float)) or backoff_jitter < 0:
+            raise ValueError("backoff_jitter must be a positive number")
 
     @property
     def limits(self) -> Limits:
@@ -145,7 +137,8 @@ class ConnectionPool:
         return (
             f"ConnectionPool("
             f"max_connections={self._limits.max_connections}, "
-            f"max_keepalive_connections={self._limits.max_keepalive_connections}, "
+            f"max_keepalive_connections={
+                self._limits.max_keepalive_connections}, "
             f"keepalive_expiry={self._limits.keepalive_expiry}, "
             f"retry_attempts={self._retry.total}, "
             f"backoff_factor={self._retry.backoff_factor}, "

@@ -41,9 +41,7 @@ def email() -> Mail:
 
 @pytest.fixture
 def pool() -> ConnectionPool:
-    return ConnectionPool(
-        backoff_factor=1, backoff_jitter=0.0
-    )
+    return ConnectionPool(backoff_factor=1, backoff_jitter=0.0)
 
 
 def _make_client(
@@ -96,9 +94,7 @@ async def test_default_backoff(
     # expected backoff is 0.5 * 2 = 1.0s
 
     gap = state["timestamps"][1] - state["timestamps"][0]
-    assert 1.75 <= gap <= 2.25, (
-        f"Expected ~2.0s backoff, got {gap:.2f}s"
-    )
+    assert 1.75 <= gap <= 2.25, f"Expected ~2.0s backoff, got {gap:.2f}s"
 
 
 @pytest.mark.asyncio
@@ -139,6 +135,4 @@ async def test_override_backoff(
 
     # expected backoff is 2.0 * 2 = 4.0s
     gap = state["timestamps"][1] - state["timestamps"][0]
-    assert 3.75 <= gap <= 4.25, (
-        f"Expected ~4.0s backoff, got {gap:.2f}s"
-    )
+    assert 3.75 <= gap <= 4.25, f"Expected ~4.0s backoff, got {gap:.2f}s"
