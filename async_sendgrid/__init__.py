@@ -1,12 +1,14 @@
 from importlib.metadata import version
 
 from .sendgrid import SendgridAPI  # noqa
+from .pool import ConnectionPool  # noqa
+
+__version__ = "0.0.0-dev"
 
 try:
-    from importlib.metadata import version
 
     __version__ = version("sendgrid-async")
 except Exception:
-    __version__ = "0.0.0-dev"
+    pass
 
-__all__ = ["SendgridAPI"]
+__all__ = ["SendgridAPI", "ConnectionPool"]
