@@ -75,11 +75,13 @@ def trace_client():
             return func
 
         @wraps(func)
-        async def wrapper(self: SendgridAPI, email: Mail) -> Response:
+        async def wrapper(
+            self: SendgridAPI, email: Mail, **kwargs: Any
+        ) -> Response:
             span = create_span(_SPAN_NAME)
             try:
                 set_sendgrid_metrics(span, email)
-                response: Response = await func(self, email)
+                response: Response = await func(self, email, **kwargs)
                 set_http_metrics(span, response)
                 return response
             except Exception as exc:

@@ -66,6 +66,53 @@ sendgrid = SendgridAPI(
 )
 ```
 
+### Retry Configuration
+
+By default, requests are automatically retried up to 5 times with exponential backoff on transient failures (429 Too Many Requests, 502, 503, 504, and timeouts).
+
+The delay between retries is calculated as:
+
+```
+delay = backoff_factor * (2 ** attempt) * random(1 - backoff_jitter, 1)
+```
+
+With the defaults (`backoff_factor=0.5`, `backoff_jitter=1.0`), delays range from 0 to 1s, 0 to 2s, 0 to 4s, etc. Jitter prevents thundering herd problems when multiple clients retry simultaneously.
+
+Customize the retry behavior through the connection pool:
+
+```python
+from async_sendgrid import SendgridAPI
+from async_sendgrid.pool import ConnectionPool
+
+pool = ConnectionPool(
+    retry_attempts=3,    # Maximum retry attempts (default: 5)
+    backoff_factor=1.0,  # Backoff multiplier in seconds (default: 0.5)
+    backoff_jitter=0.0,  # Jitter multiplier, 0 to 1 (default: 1.0)
+)
+
+sendgrid = SendgridAPI(
+    api_key="YOUR_API_KEY",
+    pool=pool,
+)
+```
+
+To disable retries entirely, set `retry_attempts=0`:
+
+```python
+pool = ConnectionPool(retry_attempts=0)
+```
+
+You can also override the retry strategy per call:
+
+```python
+# Override both retry attempts and backoff for this call
+response = await sendgrid.send(email, retry=10, backoff=1.0)
+
+# Override just one (the other keeps the pool default)
+response = await sendgrid.send(email, retry=3)
+response = await sendgrid.send(email, backoff=0.1)
+```
+
 ### Send emails on behalf of another user
 
 Send emails on behalf of subusers:

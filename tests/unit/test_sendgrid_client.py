@@ -26,21 +26,19 @@ def test_constructor(client: SendgridAPI) -> None:
     }
 
 
-def test_str(client: SendgridAPI) -> None:
-    """
-    Test __str__ method.
-    """
-    assert (
-        str(client)
-        == "SendGrid API Client\n  • Endpoint: https://api.sendgrid.com/v3/mail/send\n"
-    )
-
-
 def test_repr(client: SendgridAPI) -> None:
     """
     Test __repr__ method.
     """
-    assert (
-        repr(client)
-        == "SendgridAPI(endpoint=https://api.sendgrid.com/v3/mail/send)"
+    assert repr(client) == (
+        "SendgridAPI("
+        "endpoint='https://api.sendgrid.com/v3/mail/send', "
+        "pool=ConnectionPool("
+        "max_connections=10, "
+        "max_keepalive_connections=5, "
+        "keepalive_expiry=5.0, "
+        "retry_attempts=5, "
+        "backoff_factor=0.5, "
+        "backoff_jitter=1.0))"
     )
+    assert str(client) == repr(client)
