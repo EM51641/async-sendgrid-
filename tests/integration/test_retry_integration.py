@@ -1,6 +1,7 @@
 import time
 
 import pytest
+import pytest_asyncio
 from pytest_httpserver import HTTPServer
 from sendgrid import Mail  # type: ignore
 from werkzeug.wrappers import Request, Response
@@ -39,9 +40,11 @@ def email() -> Mail:
     )
 
 
-@pytest.fixture
-def pool() -> ConnectionPool:
-    return ConnectionPool(backoff_factor=1, backoff_jitter=0.0)
+@pytest_asyncio.fixture
+async def pool():
+    p = ConnectionPool(backoff_factor=1, backoff_jitter=0.0)
+    yield p
+    await p.shutdown()
 
 
 def _make_client(

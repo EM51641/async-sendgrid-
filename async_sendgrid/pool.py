@@ -27,6 +27,7 @@ class ConnectionPool:
         retry_attempts: int = 5,
         backoff_factor: float = 0.5,
         backoff_jitter: float = 1.0,
+        timeout: float = 5.0,
     ) -> None:
         """
         Initialize the connection pool.
@@ -51,10 +52,13 @@ class ConnectionPool:
             backoff_jitter (float, optional):
                 Jitter multiplier applied to the backoff time,
                 between 0 and 1. Defaults to 1.0.
+            timeout (float, optional):
+                Request timeout in seconds. Defaults to 5.0.
         """
         self._validate_retry_attempts(retry_attempts)
         self._validate_backoff_factor(backoff_factor)
         self._validate_backoff_jitter(backoff_jitter)
+        self._validate_timeout(timeout)
 
         self._limits = Limits(
             max_connections=max_connections,
@@ -67,16 +71,44 @@ class ConnectionPool:
             backoff_jitter=backoff_jitter,
             allowed_methods=["POST"],
         )
+        self._timeout = timeout
         self._client: AsyncClient | None = None
+        self._shutdown = False
 
-    def _create_client(
+    def _create_client(self, headers: dict[str, Any]) -> AsyncClient:
+        """
+        Get or create the long-lived HTTP client backed by the pool.
+
+        Args:
+            headers (dict[str, Any]): The headers to use for the client.
+
+        Returns:
+            AsyncClient: The configured HTTP client.
+        """
+        if self._client is not None and not self._client.is_closed:
+            return self._client
+
+        transport = RetryTransport(
+            transport=AsyncHTTPTransport(limits=self._limits),
+            retry=self._retry,
+        )
+        self._client = AsyncClient(
+            headers=headers,
+            timeout=self._timeout,
+            transport=transport,
+        )
+        return self._client
+
+    def _create_ephemeral_client(
         self,
         headers: dict[str, Any],
         retry: int | None = None,
         backoff: float | None = None,
     ) -> AsyncClient:
         """
-        Get or create an HTTP client with the configured connection limits.
+        Create a single-use HTTP client with custom retry/backoff settings.
+
+        The caller is responsible for closing the returned client.
 
         Args:
             headers (dict[str, Any]): The headers to use for the client.
@@ -86,34 +118,44 @@ class ConnectionPool:
                 Uses the pool default when not set.
 
         Returns:
-            AsyncClient: The configured HTTP client.
+            AsyncClient: An ephemeral HTTP client.
         """
         if retry is not None:
             self._validate_retry_attempts(retry)
         if backoff is not None:
             self._validate_backoff_factor(backoff)
 
-        retry_strategy = self._retry
-        if retry is not None or backoff is not None:
-            retry_strategy = Retry(
-                total=retry if retry is not None else self._retry.total,
-                backoff_factor=(
-                    backoff
-                    if backoff is not None
-                    else self._retry.backoff_factor
-                ),
-                backoff_jitter=self._retry.backoff_jitter,
-                allowed_methods=["POST"],
-            )
+        retry_strategy = Retry(
+            total=retry if retry is not None else self._retry.total,
+            backoff_factor=(
+                backoff
+                if backoff is not None
+                else self._retry.backoff_factor
+            ),
+            backoff_jitter=self._retry.backoff_jitter,
+            allowed_methods=["POST"],
+        )
         transport = RetryTransport(
-            transport=AsyncHTTPTransport(limits=self._limits),
+            transport=AsyncHTTPTransport(),
             retry=retry_strategy,
         )
         return AsyncClient(
             headers=headers,
-            timeout=5.0,
+            timeout=self._timeout,
             transport=transport,
         )
+
+    @property
+    def is_shutdown(self) -> bool:
+        """Whether the pool has been explicitly shut down."""
+        return self._shutdown
+
+    async def shutdown(self) -> None:
+        """Close all clients and release their connections."""
+        self._shutdown = True
+        if self._client is not None and not self._client.is_closed:
+            await self._client.aclose()
+            self._client = None
 
     @staticmethod
     def _validate_retry_attempts(retry_attempts: int) -> None:
@@ -129,6 +171,11 @@ class ConnectionPool:
     def _validate_backoff_jitter(backoff_jitter: float) -> None:
         if not isinstance(backoff_jitter, (int, float)) or backoff_jitter < 0:
             raise ValueError("backoff_jitter must be a positive number")
+
+    @staticmethod
+    def _validate_timeout(timeout: float) -> None:
+        if not isinstance(timeout, (int, float)) or timeout <= 0:
+            raise ValueError("timeout must be a positive number")
 
     @property
     def limits(self) -> Limits:
@@ -148,7 +195,8 @@ class ConnectionPool:
             f"keepalive_expiry={self._limits.keepalive_expiry}, "
             f"retry_attempts={self._retry.total}, "
             f"backoff_factor={self._retry.backoff_factor}, "
-            f"backoff_jitter={self._retry.backoff_jitter})"
+            f"backoff_jitter={self._retry.backoff_jitter}, "
+            f"timeout={self._timeout})"
         )
 
     def __str__(self) -> str:

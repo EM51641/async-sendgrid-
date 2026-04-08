@@ -2,24 +2,30 @@ import logging
 import os
 
 import pytest
+import pytest_asyncio
 from httpx import request
 from sendgrid import Mail  # type: ignore
 
 from async_sendgrid.exception import SessionClosedException
+from async_sendgrid.pool import ConnectionPool
 from async_sendgrid.sendgrid import SendgridAPI
 
 
-@pytest.fixture
-def client() -> SendgridAPI:
-    """Setup client"""
+@pytest_asyncio.fixture
+async def client():
+    """Setup client with its own pool to avoid shared mutable state."""
     secret_key = os.environ["SENDGRID_API_KEY"]
     on_behalf_of = "John Smith"
     endpoint = "http://localhost:3000/v3/mail/send"
+    pool = ConnectionPool()
     client = SendgridAPI(
-        api_key=secret_key, endpoint=endpoint, on_behalf_of=on_behalf_of
+        api_key=secret_key,
+        endpoint=endpoint,
+        on_behalf_of=on_behalf_of,
+        pool=pool,
     )
-
-    return client
+    yield client
+    await pool.shutdown()
 
 
 @pytest.mark.asyncio
@@ -79,19 +85,43 @@ async def test_if_messages_sent_are_correct(client: SendgridAPI) -> None:
 
 
 @pytest.mark.asyncio
-async def test_if_session_is_closed_raises_exception(
+async def test_session_rebuilds_after_unexpected_close(
     client: SendgridAPI, caplog: pytest.LogCaptureFixture
 ):
     """
-    Test if the session is closed raises an exception.
+    Test that closing the session without shutting down the pool
+    transparently rebuilds the client.
     """
-
-    email = Mail()
-
     await client.session.aclose()
 
+    with caplog.at_level(logging.DEBUG, logger="async_sendgrid.sendgrid"):
+        response = await client.send(
+            Mail(
+                from_email="johndoe@example.com",
+                to_emails="mahndoe@example.com",
+                subject="Rebuild test",
+                plain_text_content="Hello!",
+            )
+        )
+
+    assert response.status_code == 202
+    assert any(
+        "rebuilding client" in record.message for record in caplog.records
+    )
+
+
+@pytest.mark.asyncio
+async def test_session_raises_after_explicit_shutdown(
+    client: SendgridAPI, caplog: pytest.LogCaptureFixture
+):
+    """
+    Test that calling pool.shutdown() and then sending raises
+    SessionClosedException.
+    """
+    await client.pool.shutdown()
+
     with pytest.raises(SessionClosedException):
-        await client.send(email)
+        await client.send(Mail())
 
     assert caplog.record_tuples == [
         (

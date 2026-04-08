@@ -13,6 +13,9 @@ def pool():
     )
 
 
+HEADERS = {"Authorization": "Bearer test"}
+
+
 def test_pool_default_initialization():
     """Test pool initialization with default values."""
     pool = ConnectionPool()
@@ -22,6 +25,8 @@ def test_pool_default_initialization():
     assert pool._retry.total == 5
     assert pool._retry.backoff_factor == 0.5
     assert pool._retry.backoff_jitter == 1.0
+    assert pool._timeout == 5.0
+    assert pool.is_shutdown is False
 
 
 def test_pool_custom_initialization():
@@ -33,6 +38,7 @@ def test_pool_custom_initialization():
         retry_attempts=3,
         backoff_factor=1.0,
         backoff_jitter=0.25,
+        timeout=15.0,
     )
     assert pool.limits.max_connections == 5
     assert pool.limits.max_keepalive_connections == 2
@@ -40,6 +46,7 @@ def test_pool_custom_initialization():
     assert pool._retry.total == 3
     assert pool._retry.backoff_factor == 1.0
     assert pool._retry.backoff_jitter == 0.25
+    assert pool._timeout == 15.0
 
 
 def test_create_client(pool: ConnectionPool):
@@ -74,6 +81,22 @@ def test_create_client_propagates_limits(pool: ConnectionPool):
     assert connection_pool._keepalive_expiry == pool.limits.keepalive_expiry
 
 
+def test_create_client_timeout_propagated():
+    """Test that custom timeout is propagated to the client."""
+    pool = ConnectionPool(timeout=30.0)
+    client = pool._create_client(HEADERS)
+    assert client.timeout.connect == 30.0
+    assert client.timeout.read == 30.0
+
+
+def test_ephemeral_client_timeout_propagated():
+    """Test that custom timeout is propagated to ephemeral clients."""
+    pool = ConnectionPool(timeout=30.0)
+    client = pool._create_ephemeral_client(HEADERS, retry=1)
+    assert client.timeout.connect == 30.0
+    assert client.timeout.read == 30.0
+
+
 def test_pool_repr(pool: ConnectionPool):
     """Test repr of the pool."""
     assert repr(pool) == (
@@ -83,7 +106,8 @@ def test_pool_repr(pool: ConnectionPool):
         "keepalive_expiry=1.0, "
         "retry_attempts=5, "
         "backoff_factor=0.5, "
-        "backoff_jitter=1.0)"
+        "backoff_jitter=1.0, "
+        "timeout=5.0)"
     )
     assert str(pool) == repr(pool)
 
@@ -109,18 +133,39 @@ def test_pool_invalid_jitter_raises(backoff_jitter):
         ConnectionPool(backoff_jitter=backoff_jitter)
 
 
-HEADERS = {"Authorization": "Bearer test"}
+@pytest.mark.parametrize("timeout", [0, -1, -0.5, "1", None])
+def test_pool_invalid_timeout_raises(timeout):
+    """Test that invalid timeout raises ValueError."""
+    with pytest.raises(ValueError, match="timeout"):
+        ConnectionPool(timeout=timeout)
+
+
+@pytest.mark.asyncio
+async def test_shutdown_sets_flag():
+    """Test that shutdown sets is_shutdown to True."""
+    pool = ConnectionPool()
+    assert pool.is_shutdown is False
+    await pool.shutdown()
+    assert pool.is_shutdown is True
+
+
+def test_create_ephemeral_client(pool: ConnectionPool):
+    """Test ephemeral client creation with custom retry/backoff."""
+    client = pool._create_ephemeral_client(HEADERS, retry=2, backoff=1.0)
+    assert client.headers["Authorization"] == "Bearer test"
 
 
 @pytest.mark.parametrize("retry", [-1, -100, 1.5, "3"])
-def test_create_client_invalid_retry_raises(pool: ConnectionPool, retry):
-    """Test that invalid retry override in _create_client raises ValueError."""
+def test_ephemeral_client_invalid_retry_raises(pool: ConnectionPool, retry):
+    """Test that invalid retry override raises ValueError."""
     with pytest.raises(ValueError, match="retry_attempts"):
-        pool._create_client(HEADERS, retry=retry)
+        pool._create_ephemeral_client(HEADERS, retry=retry)
 
 
 @pytest.mark.parametrize("backoff", [-0.5, -1, "0.5"])
-def test_create_client_invalid_backoff_raises(pool: ConnectionPool, backoff):
-    """Test that invalid backoff override in _create_client raises ValueError."""
+def test_ephemeral_client_invalid_backoff_raises(
+    pool: ConnectionPool, backoff
+):
+    """Test that invalid backoff override raises ValueError."""
     with pytest.raises(ValueError, match="backoff_factor"):
-        pool._create_client(HEADERS, backoff=backoff)
+        pool._create_ephemeral_client(HEADERS, backoff=backoff)

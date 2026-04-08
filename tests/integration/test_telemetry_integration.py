@@ -2,6 +2,7 @@ import os
 from typing import Generator
 
 import pytest
+import pytest_asyncio
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
@@ -26,8 +27,8 @@ def tracer_config(
     provider.add_span_processor(processor)
 
 
-@pytest.fixture
-def client() -> SendgridAPI:
+@pytest_asyncio.fixture
+async def client():
     """Setup client"""
     secret_key = os.environ["SENDGRID_API_KEY"]
     on_behalf_of = "John Smith"
@@ -37,7 +38,8 @@ def client() -> SendgridAPI:
         endpoint=endpoint,
         on_behalf_of=on_behalf_of,
     )
-    return client
+    yield client
+    await client.pool.shutdown()
 
 
 @pytest.fixture

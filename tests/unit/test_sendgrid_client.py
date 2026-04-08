@@ -39,6 +39,7 @@ def test_repr(client: SendgridAPI) -> None:
         "keepalive_expiry=5.0, "
         "retry_attempts=5, "
         "backoff_factor=0.5, "
-        "backoff_jitter=1.0))"
+        "backoff_jitter=1.0, "
+        "timeout=5.0))"
     )
     assert str(client) == repr(client)

@@ -102,16 +102,21 @@ To disable retries entirely, set `retry_attempts=0`:
 pool = ConnectionPool(retry_attempts=0)
 ```
 
-You can also override the retry strategy per call:
+### Shutdown
+
+When your application is shutting down, call `shutdown()` on the pool to close all connections and release resources:
 
 ```python
-# Override both retry attempts and backoff for this call
-response = await sendgrid.send(email, retry=10, backoff=1.0)
+pool = ConnectionPool()
+sendgrid = SendgridAPI(api_key="YOUR_API_KEY", pool=pool)
 
-# Override just one (the other keeps the pool default)
-response = await sendgrid.send(email, retry=3)
-response = await sendgrid.send(email, backoff=0.1)
+# ... send emails ...
+
+# On application shutdown
+await pool.shutdown()
 ```
+
+> **Note:** Per-call `retry` or `backoff` overrides on `send()` create and tear down an ephemeral connection (TCP + TLS handshake) for every request. Because an email send is a lightweight operation — a small JSON payload answered with a `202` — the connection overhead can easily exceed the request itself. Configure retry and backoff on the `ConnectionPool` at initialization instead.
 
 ### Send emails on behalf of another user
 
