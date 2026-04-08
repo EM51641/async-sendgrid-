@@ -1,4 +1,6 @@
+from importlib.metadata import version
+
 from .sendgrid import SendgridAPI  # noqa
 
-__version__ = "2.1.2"
+__version__ = version("sendgrid-async")
 __all__ = ["SendgridAPI"]
