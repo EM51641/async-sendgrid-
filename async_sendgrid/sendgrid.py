@@ -82,7 +82,7 @@ class SendgridAPI(BaseSendgridAPI):
         api_key: str,
         endpoint: str = "https://api.sendgrid.com/v3/mail/send",
         on_behalf_of: Optional[str] = None,
-        pool: ConnectionPool = ConnectionPool(),
+        pool: Optional[ConnectionPool] = None,
     ):
         self._api_key = api_key
         self._endpoint = endpoint
@@ -97,7 +97,7 @@ class SendgridAPI(BaseSendgridAPI):
         if on_behalf_of:
             self._headers["On-Behalf-Of"] = on_behalf_of
 
-        self._pool = pool
+        self._pool = pool if pool is not None else ConnectionPool()
         self._session = self._pool._create_client(self._headers)
 
     @property

@@ -10,6 +10,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 )
 from sendgrid.helpers.mail import Mail  # type: ignore
 
+from async_sendgrid.pool import ConnectionPool
 from async_sendgrid.sendgrid import SendgridAPI
 
 
@@ -29,17 +30,19 @@ def tracer_config(
 
 @pytest_asyncio.fixture
 async def client():
-    """Setup client"""
+    """Setup client with its own pool to avoid shared mutable state."""
     secret_key = os.environ["SENDGRID_API_KEY"]
     on_behalf_of = "John Smith"
     endpoint = "http://localhost:3000/v3/mail/send"
+    pool = ConnectionPool()
     client = SendgridAPI(
         api_key=secret_key,
         endpoint=endpoint,
         on_behalf_of=on_behalf_of,
+        pool=pool,
     )
     yield client
-    await client.pool.shutdown()
+    await pool.shutdown()
 
 
 @pytest.fixture
@@ -81,7 +84,7 @@ async def test_successful_send_telemetry(
 async def test_stack_trace_is_recorded(
     exporter: InMemorySpanExporter, client: SendgridAPI, email: Mail
 ):
-    await client.session.aclose()
+    await client.pool.shutdown()
     with pytest.raises(Exception):
         await client.send(email)
     # Get the exported spans
