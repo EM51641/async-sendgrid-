@@ -62,6 +62,18 @@ def test_create_client(pool: ConnectionPool):
     assert "user-agent" in client.headers
 
 
+def test_create_client_propagates_limits(pool: ConnectionPool):
+    """Test that pool limits are propagated to the transport layer."""
+    client = pool._create_client({"Authorization": "Bearer test"})
+    connection_pool = client._transport._async_transport._pool
+    assert connection_pool._max_connections == pool.limits.max_connections
+    assert (
+        connection_pool._max_keepalive_connections
+        == pool.limits.max_keepalive_connections
+    )
+    assert connection_pool._keepalive_expiry == pool.limits.keepalive_expiry
+
+
 def test_pool_repr(pool: ConnectionPool):
     """Test repr of the pool."""
     assert repr(pool) == (
@@ -95,3 +107,20 @@ def test_pool_invalid_jitter_raises(backoff_jitter):
     """Test that invalid backoff_jitter raises ValueError."""
     with pytest.raises(ValueError, match="backoff_jitter"):
         ConnectionPool(backoff_jitter=backoff_jitter)
+
+
+HEADERS = {"Authorization": "Bearer test"}
+
+
+@pytest.mark.parametrize("retry", [-1, -100, 1.5, "3"])
+def test_create_client_invalid_retry_raises(pool: ConnectionPool, retry):
+    """Test that invalid retry override in _create_client raises ValueError."""
+    with pytest.raises(ValueError, match="retry_attempts"):
+        pool._create_client(HEADERS, retry=retry)
+
+
+@pytest.mark.parametrize("backoff", [-0.5, -1, "0.5"])
+def test_create_client_invalid_backoff_raises(pool: ConnectionPool, backoff):
+    """Test that invalid backoff override in _create_client raises ValueError."""
+    with pytest.raises(ValueError, match="backoff_factor"):
+        pool._create_client(HEADERS, backoff=backoff)

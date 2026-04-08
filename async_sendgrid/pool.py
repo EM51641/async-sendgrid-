@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from httpx import AsyncClient, Limits  # type: ignore
+from httpx import AsyncClient, AsyncHTTPTransport, Limits  # type: ignore
 from httpx_retries import Retry, RetryTransport  # type: ignore
 
 if TYPE_CHECKING:
@@ -88,6 +88,11 @@ class ConnectionPool:
         Returns:
             AsyncClient: The configured HTTP client.
         """
+        if retry is not None:
+            self._validate_retry_attempts(retry)
+        if backoff is not None:
+            self._validate_backoff_factor(backoff)
+
         retry_strategy = self._retry
         if retry is not None or backoff is not None:
             retry_strategy = Retry(
@@ -100,10 +105,12 @@ class ConnectionPool:
                 backoff_jitter=self._retry.backoff_jitter,
                 allowed_methods=["POST"],
             )
-        transport = RetryTransport(retry=retry_strategy)
+        transport = RetryTransport(
+            transport=AsyncHTTPTransport(limits=self._limits),
+            retry=retry_strategy,
+        )
         return AsyncClient(
             headers=headers,
-            limits=self._limits,
             timeout=5.0,
             transport=transport,
         )
