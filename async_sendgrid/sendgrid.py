@@ -50,7 +50,12 @@ class BaseSendgridAPI(ABC):
         """Not implemented"""
 
     @abstractmethod
-    async def send(self, message: Mail) -> Response:
+    async def send(
+        self,
+        message: Mail,
+        retry: Optional[int] = None,
+        backoff: Optional[float] = None,
+    ) -> Response:
         """Not implemented"""
 
 
@@ -116,7 +121,12 @@ class SendgridAPI(BaseSendgridAPI):
         return self._session
 
     @trace_client()
-    async def send(self, email: Mail) -> Response:
+    async def send(
+        self,
+        email: Mail,
+        retry: Optional[int] = None,
+        backoff: Optional[float] = None,
+    ) -> Response:
         """
         Make a Twilio SendGrid v3 API request with the request body generated
         by the Mail object
@@ -124,16 +134,34 @@ class SendgridAPI(BaseSendgridAPI):
         Args:
             email: The Twilio SendGrid v3 API request body generated
                 by the Mail object or dict
+            retry: Override the number of retry attempts for this
+                request. Uses the client default when not set.
+            backoff: Override the backoff factor for this request.
+                Uses the client default when not set.
 
         Returns:
             The Twilio SendGrid v3 API response
         """
         self._check_session_closed()
         json_message = email.get()
-        response = await self._session.post(
-            url=self._endpoint, json=json_message
+
+        if retry is not None or backoff is not None:
+            async with self._build_client(retry, backoff) as session:
+                return await self._send(session, json_message)
+
+        return await self._send(self._session, json_message)
+
+    async def _send(self, client: AsyncClient, json_message: dict[str, Any]) -> Response:
+        return await client.post(url=self._endpoint, json=json_message)
+
+    def _build_client(
+        self,
+        retry: Optional[int] = None,
+        backoff: Optional[float] = None,
+    ) -> AsyncClient:
+        return self._pool._create_client(
+            self._headers, retry=retry, backoff=backoff
         )
-        return response
 
     def _check_session_closed(self):
         """
@@ -146,8 +174,12 @@ class SendgridAPI(BaseSendgridAPI):
             logger.error("Session not initialized")
             raise SessionClosedException("Session not initialized")
 
-    def __str__(self) -> str:
-        return f"SendGrid API Client\n  • Endpoint: {self._endpoint}\n"
-
     def __repr__(self) -> str:
-        return f"SendgridAPI(endpoint={self._endpoint})"
+        return (
+            f"SendgridAPI("
+            f"endpoint={self._endpoint!r}, "
+            f"pool={self._pool!r})"
+        )
+
+    def __str__(self) -> str:
+        return repr(self)
