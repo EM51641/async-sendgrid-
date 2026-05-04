@@ -38,7 +38,7 @@ opentelemetry-exporter-otlp-proto-grpc = "^1.34.0"
 [tool.poetry.dev-dependencies]
 pytest = "^8.4.0"
 pytest-asyncio = "^1.0.0"
-pytest-cov = "^6.1.1"
+pytest-cov = "^7.1.0"
 pytest-httpserver = "^1.1.0"
 mypy = "^1.0.0"
 flake8 = "^7.2.0"
